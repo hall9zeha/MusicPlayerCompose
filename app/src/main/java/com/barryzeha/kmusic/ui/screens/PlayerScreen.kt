@@ -1,6 +1,7 @@
-package com.barryzeha.kmusic.ui.theme.screens
+package com.barryzeha.kmusic.ui.screens
 
 import android.annotation.SuppressLint
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.basicMarquee
@@ -43,8 +44,6 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.barryzeha.kmusic.R
-import org.intellij.lang.annotations.JdkConstants
-import org.intellij.lang.annotations.JdkConstants.HorizontalAlignment
 
 /****
  * Project KMusic
@@ -77,7 +76,7 @@ fun CoverAlbumArt(){
             .size(screenWidth * 0.8f) /* For control the square size we choose this option */
             /*.fillMaxWidth(0.8f)*/,
         elevation= CardDefaults.cardElevation(4.dp),
-        border=_root_ide_package_.androidx.compose.foundation.BorderStroke(0.dp, Color.Transparent),
+        border= BorderStroke(0.dp, Color.Transparent),
         shape = RoundedCornerShape(16.dp),
 
     ) {
