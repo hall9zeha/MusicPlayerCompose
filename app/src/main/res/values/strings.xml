@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">KMusic</string>
+    <string name="accept">Accept</string>
+    <string name="cancel">Cancel</string>
 </resources>
