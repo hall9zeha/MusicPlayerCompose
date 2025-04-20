@@ -106,7 +106,7 @@ fun SongDescription(){
 @Composable
 fun Seekbar(){
     var sliderValue by remember { mutableFloatStateOf(0f) }
-    val interactionsource = MutableInteractionSource()
+    val interactionSource = MutableInteractionSource()
     Column(modifier=Modifier.fillMaxWidth(). padding(top = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally) {
         Slider(modifier= Modifier.fillMaxWidth()
@@ -117,8 +117,8 @@ fun Seekbar(){
             valueRange = 0f..1000f, steps = 999,
             thumb = {
                 SliderDefaults.Thumb(
-                    interactionSource = interactionsource,
-                    thumbSize = DpSize(24.dp,24.dp)
+                    interactionSource = interactionSource,
+                    thumbSize = DpSize(16.dp,16.dp)
                 )
             },
             track = {sliderState->
