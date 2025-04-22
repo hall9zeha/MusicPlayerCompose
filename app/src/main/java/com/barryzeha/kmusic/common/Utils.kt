@@ -2,7 +2,16 @@ package com.barryzeha.kmusic.common
 
 import android.content.Context
 import android.content.pm.PackageManager
+import android.icu.text.Normalizer2
+import android.provider.MediaStore
+import android.provider.MediaStore.Audio.Media
 import androidx.core.content.ContextCompat
+import androidx.core.database.getIntOrNull
+import androidx.core.database.getLongOrNull
+import androidx.core.database.getStringOrNull
+import com.barryzeha.kmusic.data.SongEntity
+import org.apache.commons.io.FilenameUtils
+import kotlin.String
 
 /****
  * Project KMusic
@@ -26,4 +35,81 @@ fun checkPermissions(context:Context, permissionsList: List<String>, granted:(Bo
     }
     granted((grantedCount == permissionsList.size), permissionsGranted)
 
+}
+private val contentResolverColumns =
+    arrayOf(
+        Media._ID,
+        Media.DATA,
+        Media.DATE_ADDED,
+        Media.DATE_MODIFIED,
+        Media.TITLE,
+        Media.ARTIST,
+        Media.ALBUM,
+        Media.ALBUM_ARTIST,
+        Media.GENRE,
+        Media.YEAR,
+        Media.TRACK,
+        Media.DISC_NUMBER,
+        Media.DURATION,
+        Media.SIZE,
+        Media.BITRATE,
+    )
+fun scanTracks(context: Context): List<SongEntity>?{
+    if(ContextCompat.checkSelfPermission(context,READ_PERMISSION) == PackageManager.PERMISSION_DENIED) return null
+
+    val libraryVersion = MediaStore.getVersion(context)
+    val query = context.contentResolver.query(
+        Media.EXTERNAL_CONTENT_URI,
+        contentResolverColumns,
+        "${Media.IS_MUSIC} AND NOT ${Media.IS_DRM} AND NOT ${Media.IS_TRASHED}",
+        null,
+        "${Media._ID} ASC"
+    )
+    val tracks = mutableListOf<SongEntity>()
+    query?.use{cursor->
+        val ci = contentResolverColumns.associateWith {cursor.getColumnIndexOrThrow(it)  }
+        while(cursor.moveToNext()){
+            val id=cursor.getLong(ci[Media._ID]!!)
+            val trackVersion = cursor.getLong(ci[Media.DATE_MODIFIED]!!)
+
+            val path = cursor.getString(ci[Media.DATA]!!)
+                .trimAndNormalize()
+                .let{FilenameUtils.normalize(it)}
+                .let{ FilenameUtils.separatorsToUnix(it) }
+            val fileName = FilenameUtils.getName(path)
+            var title = cursor.getStringOrNull(ci[Media.TITLE]!!)?.trimAndNormalize()
+            var artist = cursor.getStringOrNull(ci[Media.ARTIST]!!)?.trimAndNormalize()
+            var album = cursor.getStringOrNull(ci[Media.ALBUM]!!)?.trimAndNormalize()
+            var albumArtist = cursor.getStringOrNull(ci[Media.ALBUM_ARTIST]!!)?.trimAndNormalize()
+            var genre = cursor.getStringOrNull(ci[Media.GENRE]!!)?.trimAndNormalize()
+            var year = cursor.getIntOrNull(ci[Media.YEAR]!!)
+            var duration = cursor.getIntOrNull(ci[Media.DURATION]!!)
+            var bitrate = cursor.getLongOrNull(ci[Media.BITRATE]!!)
+            var size = cursor.getLongOrNull(ci[Media.SIZE]!!)
+
+            title = title?.takeIf { it.isNotEmpty() }?.trimAndNormalize()
+            artist = artist?.takeIf { it.isNotEmpty() }?.trimAndNormalize()
+            album = album?.takeIf { it.isNotEmpty() }?.trimAndNormalize()
+            albumArtist = albumArtist?.takeIf { it.isNotEmpty() }?.trimAndNormalize()
+            genre = genre?.takeIf { it.isNotEmpty() }?.trimAndNormalize()
+
+            val song = SongEntity(
+                idSong = id,
+                title = title.toString(),
+                artist = artist.toString(),
+                album = album.toString(),
+                albumArtist = albumArtist.toString(),
+                genre = genre.toString(),
+                year = year.toString(),
+                duration = duration?.toLong()?:0,
+                bitrate = bitrate?:0,
+                pathFile = fileName,
+                size = size!!
+
+            )
+            tracks.add(song)
+        }
+
+    }
+    return tracks
 }

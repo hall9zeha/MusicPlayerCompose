@@ -1,6 +1,7 @@
 package com.barryzeha.kmusic.ui.screens
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.MarqueeAnimationMode
@@ -43,7 +44,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.barryzeha.kmusic.R
+import com.barryzeha.kmusic.ui.viewmodel.MainViewModel
 
 /****
  * Project KMusic
@@ -51,15 +55,29 @@ import com.barryzeha.kmusic.R
  * Copyright (c)  All rights reserved.
  ***/
 @Composable
-fun PlayerScreen() {
-    Box(Modifier.fillMaxSize().padding(8.dp)){
+fun PlayerScreen(mainViewModel: MainViewModel = viewModel() ) {
+    LaunchedEffect(true){
+        mainViewModel.scanSongs()
+    }
+    val response by mainViewModel.songsList.collectAsStateWithLifecycle()
+    /*var count =0
+    response.forEach {
+        count++
+        Log.e("PISTA", "$count -> ${it.title}" )
+    }*/
+    Box(Modifier
+        .fillMaxSize()
+        .padding(8.dp)){
         Body()
     }
 }
 
 @Composable
 fun Body(){
-    Column(modifier= Modifier.fillMaxSize().padding(top=48.dp),
+
+    Column(modifier= Modifier
+        .fillMaxSize()
+        .padding(top = 48.dp),
         horizontalAlignment = Alignment.CenterHorizontally) {
         CoverAlbumArt()
         SongDescription()
@@ -71,7 +89,8 @@ fun Body(){
 fun CoverAlbumArt(){
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
     Card(
-        modifier = Modifier.padding(top = 48.dp)
+        modifier = Modifier
+            .padding(top = 48.dp)
             /*.aspectRatio(1f)*//* aspect ratio square 1:1 */
             .size(screenWidth * 0.8f) /* For control the square size we choose this option */
             /*.fillMaxWidth(0.8f)*/,
@@ -107,7 +126,9 @@ fun SongDescription(){
 fun Seekbar(){
     var sliderValue by remember { mutableFloatStateOf(0f) }
     val interactionSource = MutableInteractionSource()
-    Column(modifier=Modifier.fillMaxWidth(). padding(top = 24.dp),
+    Column(modifier=Modifier
+        .fillMaxWidth()
+        .padding(top = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally) {
         Slider(modifier= Modifier.fillMaxWidth()
             ,value = sliderValue,
@@ -137,7 +158,9 @@ fun Seekbar(){
             Text(modifier =Modifier.padding(start = 12.dp),
                 text = "00:00",
                 fontSize = 12.sp)
-            Text(modifier=Modifier.align(Alignment.CenterEnd).padding(end=12.dp),
+            Text(modifier=Modifier
+                .align(Alignment.CenterEnd)
+                .padding(end = 12.dp),
                 text = "00:00",
                 fontSize = 12.sp
                 )
@@ -149,16 +172,22 @@ fun Seekbar(){
 fun PlayerControls(){
     var playState by remember { mutableStateOf(false) }
     val playPause =if(!playState) Icons.Filled.PlayArrow else Icons.Filled.Pause
-    Row(modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+    Row(modifier = Modifier
+        .fillMaxWidth()
+        .padding(top = 16.dp),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically) {
-        IconButton(modifier = Modifier.wrapContentSize().padding(end = 24.dp),
+        IconButton(modifier = Modifier
+            .wrapContentSize()
+            .padding(end = 24.dp),
             onClick = {}){
             Icon(modifier = Modifier.size(20.dp),
                 imageVector = Icons.Filled.Shuffle,
                 contentDescription = "Shuffle")
         }
-        IconButton(modifier= Modifier.wrapContentSize().padding(end = 16.dp),
+        IconButton(modifier= Modifier
+            .wrapContentSize()
+            .padding(end = 16.dp),
             onClick = {}) {
             Icon(Icons.Filled.SkipPrevious, contentDescription = "Previous")
         }
@@ -168,11 +197,15 @@ fun PlayerControls(){
             }) {
             Icon(playPause, contentDescription = "Play and pause")
         }
-        IconButton(modifier= Modifier.wrapContentSize().padding(start = 16.dp),
+        IconButton(modifier= Modifier
+            .wrapContentSize()
+            .padding(start = 16.dp),
             onClick = {}) {
             Icon(Icons.Filled.SkipNext, contentDescription = "Next")
         }
-        IconButton(modifier=Modifier.wrapContentSize().padding(start = 24.dp),
+        IconButton(modifier=Modifier
+            .wrapContentSize()
+            .padding(start = 24.dp),
             onClick = {}) {
             Icon(modifier=Modifier.size(20.dp),
                 imageVector = Icons.Filled.Repeat,
