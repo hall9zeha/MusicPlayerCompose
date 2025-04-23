@@ -16,10 +16,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.barryzeha.kmusic.R
+import com.barryzeha.kmusic.data.SongEntity
+import com.barryzeha.kmusic.ui.theme.Typography
 
 /****
  * Project KMusic
@@ -28,7 +31,7 @@ import com.barryzeha.kmusic.R
  ***/
 
 @Composable
-fun SongItem(){
+fun SongItem(song: SongEntity, onItemClick:()->Unit){
     Row(modifier=Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Row(modifier = Modifier.weight(1f).padding(8.dp)) {
             Card(
@@ -43,8 +46,8 @@ fun SongItem(){
                 )
             }
             Column (modifier = Modifier.padding(start = 8.dp) ) {
-                Text(text = "Title of song", fontSize = 16.sp)
-                Text(text= "Artist")
+                Text(text = song.title, maxLines = 1, overflow = TextOverflow.Ellipsis, style = Typography.bodyMedium)
+                Text(text= song.artist, maxLines = 1, overflow = TextOverflow.Ellipsis, style = Typography.bodySmall)
             }
         }
     }
@@ -53,5 +56,5 @@ fun SongItem(){
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 private fun PreviewItem(){
-    SongItem()
+    SongItem(SongEntity()){}
 }

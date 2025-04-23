@@ -21,6 +21,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.barryzeha.kmusic.common.checkPermissions
+import com.barryzeha.kmusic.ui.screens.PlayListScreen
 import com.barryzeha.kmusic.ui.theme.KMusicTheme
 import com.barryzeha.kmusic.ui.screens.PlayerScreen
 import kotlinx.coroutines.Dispatchers
@@ -70,7 +71,7 @@ class MainActivity : ComponentActivity() {
             KMusicTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     innerPadding.calculateTopPadding()
-                    PlayerScreen()
+                    PlayListScreen()
                 }
             }
         }
