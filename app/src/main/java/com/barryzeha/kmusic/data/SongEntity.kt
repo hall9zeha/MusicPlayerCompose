@@ -20,7 +20,7 @@ data class SongEntity(
     val bitrate:Long=0,
     val pathFile:String="",
     val artistId:Int=0,
-    val albumId:Int=0,
+    val albumId:Long=0,
     val size:Long=0,
 
 )

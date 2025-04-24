@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import android.icu.text.Normalizer2
 import android.provider.MediaStore
 import android.provider.MediaStore.Audio.Media
+import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.core.database.getIntOrNull
 import androidx.core.database.getLongOrNull
@@ -53,6 +54,7 @@ private val contentResolverColumns =
         Media.DURATION,
         Media.SIZE,
         Media.BITRATE,
+        Media.ALBUM_ID
     )
 fun scanTracks(context: Context): List<SongEntity>?{
     if(ContextCompat.checkSelfPermission(context,READ_PERMISSION) == PackageManager.PERMISSION_DENIED) return null
@@ -86,6 +88,7 @@ fun scanTracks(context: Context): List<SongEntity>?{
             var duration = cursor.getIntOrNull(ci[Media.DURATION]!!)
             var bitrate = cursor.getLongOrNull(ci[Media.BITRATE]!!)
             var size = cursor.getLongOrNull(ci[Media.SIZE]!!)
+            var albumId = try{cursor.getLongOrNull(ci[Media.ALBUM_ID]!!)}catch(e:Exception){ -1}
 
             title = title?.takeIf { it.isNotEmpty() }?.trimAndNormalize()
             artist = artist?.takeIf { it.isNotEmpty() }?.trimAndNormalize()
@@ -104,6 +107,7 @@ fun scanTracks(context: Context): List<SongEntity>?{
                 duration = duration?.toLong()?:0,
                 bitrate = bitrate?:0,
                 pathFile = fileName,
+                albumId=albumId!!,
                 size = size!!
 
             )
