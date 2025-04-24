@@ -35,6 +35,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -73,16 +74,17 @@ fun SongItem(song: SongEntity, onItemClick:()->Unit){
                     Image(
                         modifier = Modifier.fillMaxSize(),
                         bitmap = bitmap.asImageBitmap(),
-                        contentDescription = "Album cover"
+                        contentDescription = "Album cover",
+                        contentScale = ContentScale.Crop
                     )
                 }?:run{
                     Image(
                         modifier = Modifier.fillMaxSize(),
                         painter = painterResource(R.drawable.ic_launcher_background),
-                        contentDescription = "Album cover"
+                        contentDescription = "Album cover",
+                        contentScale = ContentScale.Crop
                     )
                 }
-
             }
             Column (modifier = Modifier.padding(start = 8.dp) ) {
                 Text(text = song.title, maxLines = 1, overflow = TextOverflow.Ellipsis, style = Typography.bodyMedium)
@@ -102,12 +104,10 @@ private val cachedScreenSize = AtomicInteger(0)
 @RequiresApi(Build.VERSION_CODES.R)
 fun loadArtwork(context: Context, id: Long, sizeLimit: Int? = null): Bitmap? {
     try {
-        val thumbnailSize =
-            sizeLimit
+        val thumbnailSize = sizeLimit
                 ?: cachedScreenSize.get().takeIf { it > 0 }
                 ?: run {
-                    val screenSize =
-                        (context.getSystemService(Context.WINDOW_SERVICE) as WindowManager)
+                    val screenSize = (context.getSystemService(Context.WINDOW_SERVICE) as WindowManager)
                             .maximumWindowMetrics
                             .bounds
                     val limit = min(screenSize.width(), screenSize.height()).coerceAtLeast(256)
@@ -115,8 +115,7 @@ fun loadArtwork(context: Context, id: Long, sizeLimit: Int? = null): Bitmap? {
                     limit
                 }
 
-        val bitmap =
-            context.contentResolver.loadThumbnail(
+        val bitmap = context.contentResolver.loadThumbnail(
                 ContentUris.withAppendedId(Media.EXTERNAL_CONTENT_URI, id),
                 Size(thumbnailSize, thumbnailSize),
                 null,
