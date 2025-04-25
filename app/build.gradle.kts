@@ -63,4 +63,9 @@ dependencies {
 
     // Apache commons
     implementation(libs.commons.io)
+
+    //Media 3 Exoplayer
+    implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.session)
+    implementation(libs.androidx.media3.common)
 }
