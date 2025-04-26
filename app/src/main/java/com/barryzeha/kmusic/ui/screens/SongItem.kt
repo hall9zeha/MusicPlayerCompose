@@ -56,11 +56,11 @@ import kotlin.math.min
 
 @RequiresApi(Build.VERSION_CODES.R)
 @Composable
-fun SongItem(song: SongEntity, onItemClick:()->Unit){
+fun SongItem(song: SongEntity, onItemClick:(song: SongEntity)->Unit){
 
     val bitmap = loadArtwork(LocalContext.current,song.idSong)
     Row(modifier=Modifier.fillMaxWidth().clickable(
-        onClick = {},
+        onClick = {onItemClick(song)},
         interactionSource = remember { MutableInteractionSource() },
         indication = ripple()
     ), verticalAlignment = Alignment.CenterVertically) {
@@ -68,7 +68,7 @@ fun SongItem(song: SongEntity, onItemClick:()->Unit){
             Card(
                 modifier = Modifier.size(48.dp),
                 elevation = CardDefaults.cardElevation(0.dp),
-                shape = RoundedCornerShape(8.dp)
+                shape = RoundedCornerShape(4.dp)
             ) {
                 bitmap?.let {
                     Image(

@@ -106,7 +106,7 @@ fun scanTracks(context: Context): List<SongEntity>?{
                 year = year.toString(),
                 duration = duration?.toLong()?:0,
                 bitrate = bitrate?:0,
-                pathFile = fileName,
+                pathFile = path,
                 albumId=albumId!!,
                 size = size!!
 

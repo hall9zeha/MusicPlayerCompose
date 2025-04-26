@@ -10,10 +10,12 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -21,6 +23,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.barryzeha.kmusic.common.checkPermissions
+import com.barryzeha.kmusic.common.rememberManagedMediaController
 import com.barryzeha.kmusic.ui.screens.PlayListScreen
 import com.barryzeha.kmusic.ui.theme.KMusicTheme
 import com.barryzeha.kmusic.ui.screens.PlayerScreen
@@ -41,6 +44,7 @@ class MainActivity : ComponentActivity() {
             android.Manifest.permission.READ_EXTERNAL_STORAGE
         )
     }
+    @RequiresApi(Build.VERSION_CODES.R)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -50,6 +54,9 @@ class MainActivity : ComponentActivity() {
             LaunchedEffect(true) {
                 initCheckPermissions()
             }
+
+            val mediaController by rememberManagedMediaController()
+
            /* val lifecycleOwner = LocalLifecycleOwner.current
             DisposableEffect(lifecycleOwner) {
                 val observer = object:LifecycleEventObserver{
@@ -71,7 +78,7 @@ class MainActivity : ComponentActivity() {
             KMusicTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     innerPadding.calculateTopPadding()
-                    PlayListScreen()
+                    PlayListScreen(mediaController)
                 }
             }
         }

@@ -19,6 +19,9 @@ import androidx.media3.common.TrackSelectionParameters.AudioOffloadPreferences.A
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import com.barryzeha.kmusic.data.SongEntity
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
 
 
 /****
@@ -30,6 +33,7 @@ import com.barryzeha.kmusic.data.SongEntity
 class PlaybackService:MediaSessionService(){
     private var mediaSession: MediaSession?=null
     private var player: ExoPlayer? = null
+    private val serviceScope: CoroutineScope = MainScope()
     override fun onCreate() {
         super.onCreate()
         setupPlayer()
@@ -62,7 +66,7 @@ class PlaybackService:MediaSessionService(){
                 putExtra(AudioEffect.EXTRA_PACKAGE_NAME, packageName)
             }
         )
-
+        mediaSession = MediaSession.Builder(this, player!!).build()
     }
     fun addMediaItems(list: List<SongEntity>){
 
@@ -77,6 +81,7 @@ class PlaybackService:MediaSessionService(){
                     .setTitle(song.title).build()
             ).build()
         player?.addMediaItem(mediaItem)
+        play()
     }
     fun play(){
         player?.prepare()
@@ -99,6 +104,12 @@ class PlaybackService:MediaSessionService(){
         super.onTaskRemoved(rootIntent)
     }
     override fun onDestroy() {
+        mediaSession?.run{
+            player.release()
+            release()
+            mediaSession = null
+            serviceScope.cancel()
+        }
         super.onDestroy()
     }
 }
