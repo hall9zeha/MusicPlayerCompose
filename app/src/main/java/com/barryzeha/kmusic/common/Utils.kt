@@ -1,18 +1,26 @@
 package com.barryzeha.kmusic.common
 
+import android.content.ContentUris
 import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.icu.text.Normalizer2
+import android.os.Build
 import android.provider.MediaStore
 import android.provider.MediaStore.Audio.Media
 import android.util.Log
+import android.util.Size
+import android.view.WindowManager
+import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.core.database.getIntOrNull
 import androidx.core.database.getLongOrNull
 import androidx.core.database.getStringOrNull
 import com.barryzeha.kmusic.data.SongEntity
 import org.apache.commons.io.FilenameUtils
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.String
+import kotlin.math.min
 
 /****
  * Project KMusic
@@ -116,4 +124,29 @@ fun scanTracks(context: Context): List<SongEntity>?{
 
     }
     return tracks
+}
+private val cachedScreenSize = AtomicInteger(0)
+@RequiresApi(Build.VERSION_CODES.R)
+fun loadArtwork(context: Context, id: Long, sizeLimit: Int? = null): Bitmap? {
+    try {
+        val thumbnailSize = sizeLimit
+            ?: cachedScreenSize.get().takeIf { it > 0 }
+            ?: run {
+                val screenSize = (context.getSystemService(Context.WINDOW_SERVICE) as WindowManager)
+                    .maximumWindowMetrics
+                    .bounds
+                val limit = min(screenSize.width(), screenSize.height()).coerceAtLeast(256)
+                cachedScreenSize.set(limit)
+                limit
+            }
+
+        val bitmap = context.contentResolver.loadThumbnail(
+            ContentUris.withAppendedId(Media.EXTERNAL_CONTENT_URI, id),
+            Size(thumbnailSize, thumbnailSize),
+            null,
+        )
+        return bitmap
+    } catch (ex: Exception) {
+        return null
+    }
 }

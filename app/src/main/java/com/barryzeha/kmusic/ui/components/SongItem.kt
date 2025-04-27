@@ -1,18 +1,8 @@
-package com.barryzeha.kmusic.ui.screens
+package com.barryzeha.kmusic.ui.components
 
-import android.content.ContentResolver
-import android.content.ContentUris
-import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.ImageDecoder
-import android.net.Uri
 import android.os.Build
-import android.provider.MediaStore.Audio.Media
-import android.view.WindowManager
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,27 +16,21 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import android.util.Size
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.painter.BitmapPainter
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.barryzeha.kmusic.R
+import com.barryzeha.kmusic.common.loadArtwork
 import com.barryzeha.kmusic.data.SongEntity
 import com.barryzeha.kmusic.ui.theme.Typography
-import java.util.concurrent.atomic.AtomicInteger
-import kotlin.math.min
 
 /****
  * Project KMusic
@@ -94,35 +78,12 @@ fun SongItem(song: SongEntity, onItemClick:(song: SongEntity)->Unit){
     }
 }
 
+
+
 @RequiresApi(Build.VERSION_CODES.R)
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 private fun PreviewItem(){
     SongItem(SongEntity()){}
-}
-private val cachedScreenSize = AtomicInteger(0)
-@RequiresApi(Build.VERSION_CODES.R)
-fun loadArtwork(context: Context, id: Long, sizeLimit: Int? = null): Bitmap? {
-    try {
-        val thumbnailSize = sizeLimit
-                ?: cachedScreenSize.get().takeIf { it > 0 }
-                ?: run {
-                    val screenSize = (context.getSystemService(Context.WINDOW_SERVICE) as WindowManager)
-                            .maximumWindowMetrics
-                            .bounds
-                    val limit = min(screenSize.width(), screenSize.height()).coerceAtLeast(256)
-                    cachedScreenSize.set(limit)
-                    limit
-                }
-
-        val bitmap = context.contentResolver.loadThumbnail(
-                ContentUris.withAppendedId(Media.EXTERNAL_CONTENT_URI, id),
-                Size(thumbnailSize, thumbnailSize),
-                null,
-            )
-        return bitmap
-    } catch (ex: Exception) {
-        return null
-    }
 }
 
