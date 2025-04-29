@@ -14,15 +14,23 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.ModalBottomSheetDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.dp
 import com.barryzeha.kmusic.common.PlayerState
 import com.barryzeha.kmusic.common.checkPermissions
@@ -30,7 +38,10 @@ import com.barryzeha.kmusic.common.rememberManagedMediaController
 import com.barryzeha.kmusic.common.state
 import com.barryzeha.kmusic.ui.components.MiniPlayerView
 import com.barryzeha.kmusic.ui.screens.PlayListScreen
+import com.barryzeha.kmusic.ui.screens.PlayerScreen
 import com.barryzeha.kmusic.ui.theme.KMusicTheme
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     private lateinit var launcherPermission: ActivityResultLauncher<String>
@@ -45,6 +56,7 @@ class MainActivity : ComponentActivity() {
             android.Manifest.permission.READ_EXTERNAL_STORAGE
         )
     }
+    @OptIn(ExperimentalMaterial3Api::class)
     @RequiresApi(Build.VERSION_CODES.R)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,6 +72,12 @@ class MainActivity : ComponentActivity() {
             var playerState: PlayerState? by remember{
                 mutableStateOf(mediaController?.state())
             }
+            // For bottom sheet
+            val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+            var openBottomSheet by remember { mutableStateOf(false) }
+            val coroutineScope = rememberCoroutineScope()
+
+
             DisposableEffect(key1 = mediaController) {
                 mediaController?.run {
                     playerState = state()
@@ -68,24 +86,7 @@ class MainActivity : ComponentActivity() {
                     playerState?.dispose()
                 }
             }
-           /* val lifecycleOwner = LocalLifecycleOwner.current
-            DisposableEffect(lifecycleOwner) {
-                val observer = object:LifecycleEventObserver{
-                    override fun onStateChanged(
-                        source: LifecycleOwner,
-                        event: Lifecycle.Event
-                    ) {
-                        if (event == Lifecycle.Event.ON_START) {
 
-                            initCheckPermissions()
-                        }
-                    }
-                }
-                lifecycleOwner.lifecycle.addObserver(observer)
-                onDispose {
-                    lifecycleOwner.lifecycle.removeObserver(observer)
-                }
-            }*/
             KMusicTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     innerPadding.calculateTopPadding()
@@ -101,17 +102,32 @@ class MainActivity : ComponentActivity() {
                                 .height(60.dp)
                                 .align(Alignment.BottomCenter)
                                 .clickable {
+                                    coroutineScope.launch {
+                                        sheetState.expand()
+                                        openBottomSheet=true
+                                    }
                                 },
                                 playerState = playerState!!
                             )
                         }
+                        if(openBottomSheet && playerState !=null){
+                            ModalBottomSheet(
+                                dragHandle = { BottomSheetDefaults.DragHandle(color = Color.Transparent)},
+                                onDismissRequest = {
+                                    openBottomSheet = false
+                                },
+                                shape = RectangleShape,
+                                sheetState = sheetState
+                            ) {
+                                PlayerScreen()
+                            }
+                        }
+
                     }
                 }
             }
 
         }
-
-       // initCheckPermissions()
     }
     private fun activityResultForPermission(){
         launcherPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) {isGranted->

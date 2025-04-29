@@ -1,6 +1,7 @@
 package com.barryzeha.kmusic.ui.components
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
@@ -19,10 +20,16 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -53,46 +60,54 @@ fun MiniPlayerView(modifier:Modifier = Modifier, playerState: PlayerState? ){
 
     Card(modifier = modifier,
         shape = RoundedCornerShape(8.dp)
-    ){
-        Row(
-            modifier = Modifier
-                .weight(1f)
-                .padding(end = 8.dp),
-            verticalAlignment=Alignment.CenterVertically
-        ) {
-            val currentMediaItem = playerState?.currentMediaItem
-            if(currentMediaItem != null){
-                MiniPlayerCoverArt(
-                    modifier = Modifier
-                        .aspectRatio(1f)
-                        .padding(4.dp),
-                    currentMediaItem.mediaId)
-                Column(modifier=Modifier
-                    .padding(start = 8.dp)
-                    .weight(1f)) {
-                    Text(
-                        text=currentMediaItem.mediaMetadata.title.toString(),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+    ) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            ProgressLine(modifier, playerState!!)
+
+            Row(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                val currentMediaItem = playerState?.currentMediaItem
+                if (currentMediaItem != null) {
+                    MiniPlayerCoverArt(
+                        modifier = Modifier
+                            .aspectRatio(1f)
+                            .padding(4.dp),
+                        currentMediaItem.mediaId
                     )
-                    Text(
-                        text=currentMediaItem.mediaMetadata.artist.toString(),
-                        maxLines = 1,
-                        style = Typography.labelSmall,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                    Column(
+                        modifier = Modifier
+                            .padding(start = 8.dp)
+                            .weight(1f)
+                    ) {
+                        Text(
+                            text = currentMediaItem.mediaMetadata.title.toString(),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Text(
+                            text = currentMediaItem.mediaMetadata.artist.toString(),
+                            maxLines = 1,
+                            style = Typography.labelSmall,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+
+
                 }
-
-
+                PlayPauseButton(
+                    modifier = Modifier.size(40.dp),
+                    isPlaying = playerState?.isPlaying!!,
+                    isBuffering = (playerState?.playbackState == Player.STATE_BUFFERING)
+                ) {
+                    with(playerState.player) {
+                        playWhenReady = !playWhenReady
+                    }
+                }
             }
-           PlayPauseButton(modifier = Modifier.size(40.dp),
-               isPlaying = playerState?.isPlaying!!,
-               isBuffering = (playerState?.playbackState == Player.STATE_BUFFERING)
-               ) {
-               with(playerState.player){
-                   playWhenReady = !playWhenReady
-               }
-           }
         }
     }
 }
@@ -149,7 +164,25 @@ fun PlayPauseButton(modifier: Modifier = Modifier,
         }
     }
 }
+@Composable
+fun ProgressLine(modifier: Modifier, player: PlayerState){
+    var currentPos = remember { mutableLongStateOf(0L) }
+    val duration = remember {mutableLongStateOf(0L)}
 
+    LaunchedEffect(player.isPlaying) {
+        player.currentPositionCheck()
+        duration.longValue=player.player.duration
+        snapshotFlow {player.currentPosition  }
+            .collect {pos-> currentPos.longValue = pos
+                Log.e("CURRENT_POS", currentPos.longValue.toString() )
+            }
+    }
+    LinearProgressIndicator(
+            modifier = Modifier.fillMaxWidth(),
+            progress = { currentPos.longValue.toFloat() / duration.longValue.toFloat()}
+    )
+
+}
 @Composable
 fun PlayerRoundedProgressIndicator(
     modifier: Modifier = Modifier,
