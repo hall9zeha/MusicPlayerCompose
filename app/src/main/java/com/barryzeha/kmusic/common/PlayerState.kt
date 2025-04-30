@@ -35,6 +35,7 @@ interface PlayerState{
     @get:Player.State
     val playbackState: Int
     val isPlaying: Boolean
+
     fun dispose()
     fun currentPositionCheck()
 
@@ -54,6 +55,7 @@ internal class PlayerStateImpl(override val player: Player): PlayerState{
         private set
     override var currentPosition: Long by mutableStateOf(player.currentPosition)
         private set
+
 
     private val listener = object:Player.Listener{
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {

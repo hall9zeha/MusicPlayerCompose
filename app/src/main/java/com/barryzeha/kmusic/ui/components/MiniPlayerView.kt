@@ -95,8 +95,6 @@ fun MiniPlayerView(modifier:Modifier = Modifier, playerState: PlayerState? ){
                             overflow = TextOverflow.Ellipsis
                         )
                     }
-
-
                 }
                 PlayPauseButton(
                     modifier = Modifier.size(40.dp),
@@ -177,10 +175,12 @@ fun ProgressLine(modifier: Modifier, player: PlayerState){
                 Log.e("CURRENT_POS", currentPos.longValue.toString() )
             }
     }
-    LinearProgressIndicator(
+    if(player.player.currentMediaItem!=null) {
+        LinearProgressIndicator(
             modifier = Modifier.fillMaxWidth(),
-            progress = { currentPos.longValue.toFloat() / duration.longValue.toFloat()}
-    )
+            progress = { currentPos.longValue.toFloat() / duration.longValue.toFloat() }
+        )
+    }
 
 }
 @Composable

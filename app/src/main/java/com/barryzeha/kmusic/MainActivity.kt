@@ -119,7 +119,7 @@ class MainActivity : ComponentActivity() {
                                 shape = RectangleShape,
                                 sheetState = sheetState
                             ) {
-                                PlayerScreen()
+                                PlayerScreen(playerState = playerState!!)
                             }
                         }
 

@@ -1,7 +1,9 @@
 package com.barryzeha.kmusic.ui.screens
 
 import android.annotation.SuppressLint
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.MarqueeAnimationMode
@@ -38,7 +40,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpSize
@@ -46,7 +51,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.media3.common.MediaMetadata
+import androidx.media3.common.util.UnstableApi
 import com.barryzeha.kmusic.R
+import com.barryzeha.kmusic.common.PlayerState
+import com.barryzeha.kmusic.common.loadArtwork
 import com.barryzeha.kmusic.ui.viewmodel.MainViewModel
 
 /****
@@ -55,7 +64,7 @@ import com.barryzeha.kmusic.ui.viewmodel.MainViewModel
  * Copyright (c)  All rights reserved.
  ***/
 @Composable
-fun PlayerScreen(mainViewModel: MainViewModel = viewModel() ) {
+fun PlayerScreen(mainViewModel: MainViewModel = viewModel(), playerState: PlayerState ) {
     LaunchedEffect(true){
         mainViewModel.scanSongs()
     }
@@ -68,74 +77,97 @@ fun PlayerScreen(mainViewModel: MainViewModel = viewModel() ) {
     Box(Modifier
         .fillMaxSize()
         .padding(8.dp)){
-        Body()
+        Body(playerState)
     }
 }
 
 @Composable
-fun Body(){
+fun Body(playerState: PlayerState) {
 
     Column(modifier= Modifier
         .fillMaxSize()
         .padding(top = 48.dp),
         horizontalAlignment = Alignment.CenterHorizontally) {
-        CoverAlbumArt()
-        SongDescription()
-        Seekbar()
-        PlayerControls()
+        CoverAlbumArt(playerState.currentMediaItem?.mediaId)
+        SongDescription(playerState.mediaMetadata)
+        Seekbar(playerState)
+        PlayerControls(playerState)
     }
 }
+
 @Composable
-fun CoverAlbumArt(){
+fun CoverAlbumArt(mediaItemId: String?) {
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
+    val bitmap = mediaItemId?.let{ loadArtwork(LocalContext.current, mediaItemId.toLong()) }
     Card(
         modifier = Modifier
             .padding(top = 48.dp)
             /*.aspectRatio(1f)*//* aspect ratio square 1:1 */
-            .size(screenWidth * 0.8f) /* For control the square size we choose this option */
-            /*.fillMaxWidth(0.8f)*/,
-        elevation= CardDefaults.cardElevation(4.dp),
-        border= BorderStroke(0.dp, Color.Transparent),
+            .size(screenWidth * 0.8f),
+        /* For control the square size we choose this option */
+        /*.fillMaxWidth(0.8f)*/
+        elevation = CardDefaults.cardElevation(4.dp),
+        border = BorderStroke(0.dp, Color.Transparent),
         shape = RoundedCornerShape(16.dp),
 
-    ) {
-        Image(
-            modifier=Modifier.fillMaxSize(),
-            painter = painterResource(id= R.drawable.ic_launcher_background),
-            contentDescription = "Cover art")
+        ) {
+        bitmap?.let {
+            Image(
+                modifier = Modifier.fillMaxWidth(),
+                bitmap = bitmap.asImageBitmap(),
+                contentScale = ContentScale.Crop,
+                contentDescription = "Cover album art"
+            )
+        }?:run{
+            Image(
+                modifier = Modifier.fillMaxWidth(),
+                painter= painterResource(R.drawable.ic_launcher_foreground),
+                contentScale = ContentScale.Crop,
+                contentDescription = "Cover album art"
+            )
+        }
     }
 }
 
+@androidx.annotation.OptIn(UnstableApi::class)
 @Composable
-fun SongDescription(){
+fun SongDescription(metadata: MediaMetadata){
     Column(modifier= Modifier.padding(start = 8.dp, top = 16.dp, end = 8.dp, bottom = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally) {
         Text(modifier=Modifier.basicMarquee(animationMode = MarqueeAnimationMode.Immediately),
-            text="Song title, Song title, Song title, song title, Song title, Song title",
+            text=metadata.title.toString(),
             fontSize = 18.sp)
         Text(modifier= Modifier.basicMarquee(animationMode = MarqueeAnimationMode.Immediately),
-            text = "Artist", fontSize = 16.sp)
+            text = metadata.artist.toString(), fontSize = 16.sp)
         Text(modifier = Modifier.basicMarquee(animationMode = MarqueeAnimationMode.Immediately),
-            text="Album", fontSize = 16.sp)
+            text=metadata.albumTitle.toString(), fontSize = 16.sp)
 
     }
 }
 @SuppressLint("UnrememberedMutableInteractionSource")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Seekbar(){
-    var sliderValue by remember { mutableFloatStateOf(0f) }
+fun Seekbar(playerState: PlayerState){
+    var sliderValue by remember { mutableStateOf(0L) }
+    var duration by remember { mutableStateOf(0L) }
+    LaunchedEffect(playerState) {
+        duration = playerState.player.duration
+        snapshotFlow { playerState.currentPosition }
+            .collect { sliderValue = it
+            }
+    }
+
     val interactionSource = MutableInteractionSource()
     Column(modifier=Modifier
         .fillMaxWidth()
         .padding(top = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally) {
         Slider(modifier= Modifier.fillMaxWidth()
-            ,value = sliderValue,
+            ,value = sliderValue.toFloat(),
             onValueChange = { newValue ->
-                sliderValue = newValue
+                playerState.player.seekTo(newValue.toLong())
             },
-            valueRange = 0f..1000f, steps = 999,
+            valueRange = 0f..(duration.toFloat()),
             thumb = {
                 SliderDefaults.Thumb(
                     interactionSource = interactionSource,
@@ -169,8 +201,9 @@ fun Seekbar(){
 }
 
 @Composable
-fun PlayerControls(){
-    var playState by remember { mutableStateOf(false) }
+fun PlayerControls(playerState: PlayerState){
+    var playState by remember { mutableStateOf(playerState.isPlaying) }
+
     val playPause =if(!playState) Icons.Filled.PlayArrow else Icons.Filled.Pause
     Row(modifier = Modifier
         .fillMaxWidth()
@@ -193,7 +226,10 @@ fun PlayerControls(){
         }
         FloatingActionButton (modifier= Modifier.wrapContentSize(),
             onClick = {
-                playState = !playState
+                with(playerState.player){
+                    playWhenReady = !playWhenReady
+                    playState = playWhenReady
+                }
             }) {
             Icon(playPause, contentDescription = "Play and pause")
         }
@@ -219,6 +255,6 @@ fun PlayerControls(){
 @Composable
 fun PreviewComposable(){
     Box() {
-        Body()
+        //Body()
     }
 }
