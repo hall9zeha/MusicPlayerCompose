@@ -75,6 +75,14 @@ internal class PlayerStateImpl(override val player: Player): PlayerState{
             this@PlayerStateImpl.isPlaying = isPlaying
         }
 
+        override fun onPositionDiscontinuity(
+            oldPosition: Player.PositionInfo,
+            newPosition: Player.PositionInfo,
+            reason: Int
+        ) {
+            this@PlayerStateImpl.mediaItemIndex = player.currentMediaItemIndex
+        }
+
     }
     init{
         player.addListener(listener)

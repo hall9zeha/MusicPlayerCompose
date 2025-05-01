@@ -113,14 +113,14 @@ fun CoverAlbumArt(mediaItemId: String?) {
         ) {
         bitmap?.let {
             Image(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxSize(),
                 bitmap = bitmap.asImageBitmap(),
                 contentScale = ContentScale.Crop,
                 contentDescription = "Cover album art"
             )
         }?:run{
             Image(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxSize(),
                 painter= painterResource(R.drawable.ic_launcher_foreground),
                 contentScale = ContentScale.Crop,
                 contentDescription = "Cover album art"
@@ -151,7 +151,7 @@ fun Seekbar(playerState: PlayerState){
     var sliderValue by remember { mutableStateOf(0L) }
     var duration by remember { mutableStateOf(0L) }
     LaunchedEffect(playerState) {
-        duration = playerState.player.duration
+        duration = if(playerState.player.duration<0) 0 else playerState.player.duration
         snapshotFlow { playerState.currentPosition }
             .collect { sliderValue = it
             }
@@ -221,7 +221,7 @@ fun PlayerControls(playerState: PlayerState){
         IconButton(modifier= Modifier
             .wrapContentSize()
             .padding(end = 16.dp),
-            onClick = {}) {
+            onClick = {playerState.player.seekToPreviousMediaItem()}) {
             Icon(Icons.Filled.SkipPrevious, contentDescription = "Previous")
         }
         FloatingActionButton (modifier= Modifier.wrapContentSize(),
@@ -236,7 +236,7 @@ fun PlayerControls(playerState: PlayerState){
         IconButton(modifier= Modifier
             .wrapContentSize()
             .padding(start = 16.dp),
-            onClick = {}) {
+            onClick = {playerState.player.seekToNextMediaItem()}) {
             Icon(Icons.Filled.SkipNext, contentDescription = "Next")
         }
         IconButton(modifier=Modifier

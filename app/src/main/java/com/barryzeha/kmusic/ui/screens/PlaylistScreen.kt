@@ -3,11 +3,12 @@ package com.barryzeha.kmusic.ui.screens
 import android.annotation.SuppressLint
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.ExperimentalMaterial3Api
 
 import androidx.compose.material3.Scaffold
@@ -22,10 +23,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.media3.common.MediaItem
-import androidx.media3.common.MediaMetadata
 import androidx.media3.session.MediaController
+import com.barryzeha.kmusic.common.PlayerState
+import com.barryzeha.kmusic.common.playMediaAtIndex
+import com.barryzeha.kmusic.common.updatePlaylist
 import com.barryzeha.kmusic.data.SongEntity
+import com.barryzeha.kmusic.data.toMediaItem
 import com.barryzeha.kmusic.ui.components.SongItem
 import com.barryzeha.kmusic.ui.viewmodel.MainViewModel
 
@@ -39,11 +42,14 @@ import com.barryzeha.kmusic.ui.viewmodel.MainViewModel
 @RequiresApi(Build.VERSION_CODES.R)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun PlayListScreen(mediaController:MediaController?,mainViewModel: MainViewModel = viewModel() ){
+fun PlayListScreen(mediaController: MediaController?, mainViewModel: MainViewModel = viewModel() ){
+    val songsList by mainViewModel.songsList.collectAsStateWithLifecycle()
+    LaunchedEffect(songsList.isNotEmpty()) {
+        mediaController?.updatePlaylist(songsList.map { it.toMediaItem() })
+    }
     LaunchedEffect(true){
         mainViewModel.scanSongs()
     }
-    val songsList by mainViewModel.songsList.collectAsStateWithLifecycle()
     Scaffold(
         topBar = {MyToolbar {  }},
         content = {padding->
@@ -55,25 +61,14 @@ fun PlayListScreen(mediaController:MediaController?,mainViewModel: MainViewModel
 
 @RequiresApi(Build.VERSION_CODES.R)
 @Composable
-fun VerticalRecyclerView(mediaController:MediaController?,songsList: List<SongEntity>, modifier: Modifier){
+fun VerticalRecyclerView(mediaController: MediaController?,songsList: List<SongEntity>, modifier: Modifier){
     val context = LocalContext.current
     LazyColumn(
         modifier = modifier
     ) {
-        items(songsList) { song->
+        itemsIndexed(songsList) { index,song->
             SongItem(song) { song ->
-                val mediaItem = MediaItem.Builder()
-                    .setMediaId(song.idSong.toString())
-                    .setUri(song.pathFile)
-                    .setMediaMetadata(
-                        MediaMetadata.Builder()
-                            .setArtist(song.artist)
-                            .setTitle(song.title)
-                            .setAlbumTitle(song.album).build()
-                    ).build()
-                mediaController?.setMediaItem(mediaItem)
-                mediaController?.prepare()
-                mediaController?.play()
+                mediaController?.playMediaAtIndex(index)
             }
         }
 

@@ -45,6 +45,7 @@ import androidx.media3.common.Player
 import com.barryzeha.kmusic.R
 import com.barryzeha.kmusic.common.PlayerState
 import com.barryzeha.kmusic.common.loadArtwork
+import com.barryzeha.kmusic.common.playMediaAtIndex
 import com.barryzeha.kmusic.ui.theme.Typography
 
 /****
@@ -72,6 +73,10 @@ fun MiniPlayerView(modifier:Modifier = Modifier, playerState: PlayerState? ){
             ) {
                 val currentMediaItem = playerState?.currentMediaItem
                 if (currentMediaItem != null) {
+                    LaunchedEffect(true) {
+                        playerState.player.seekToDefaultPosition(if(playerState.mediaItemIndex > 0)playerState.mediaItemIndex else 0)
+                        playerState.player.prepare()
+                    }
                     MiniPlayerCoverArt(
                         modifier = Modifier
                             .aspectRatio(1f)
@@ -120,14 +125,14 @@ fun MiniPlayerCoverArt(modifier: Modifier, idSong: String){
         ) {
         bitmap?.let {
             Image(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxSize(),
                 bitmap = bitmap.asImageBitmap(),
                 contentScale = ContentScale.Crop,
                 contentDescription = "Cover album art"
             )
         }?:run{
             Image(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxSize(),
                 painter= painterResource(R.drawable.ic_launcher_foreground),
                 contentScale = ContentScale.Crop,
                 contentDescription = "Cover album art"

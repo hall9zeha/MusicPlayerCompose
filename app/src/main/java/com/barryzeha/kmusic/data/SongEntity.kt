@@ -1,6 +1,9 @@
 package com.barryzeha.kmusic.data
 
 import android.R
+import android.media.browse.MediaBrowser
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 
 /****
  * Project KMusic
@@ -24,3 +27,15 @@ data class SongEntity(
     val size:Long=0,
 
 )
+fun SongEntity.toMediaItem(): MediaItem{
+    val mediaItem = MediaItem.Builder()
+        .setMediaId(idSong.toString())
+        .setUri(pathFile)
+        .setMediaMetadata(
+            MediaMetadata.Builder()
+                .setArtist(artist)
+                .setTitle(title)
+                .setAlbumTitle(album).build()
+        ).build()
+    return mediaItem
+}
