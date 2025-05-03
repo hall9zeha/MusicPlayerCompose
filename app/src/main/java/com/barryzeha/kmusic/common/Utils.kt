@@ -18,6 +18,7 @@ import androidx.core.database.getLongOrNull
 import androidx.core.database.getStringOrNull
 import com.barryzeha.kmusic.data.SongEntity
 import org.apache.commons.io.FilenameUtils
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.String
 import kotlin.math.min
@@ -149,4 +150,10 @@ fun loadArtwork(context: Context, id: Long, sizeLimit: Int? = null): Bitmap? {
     } catch (ex: Exception) {
         return null
     }
+}
+
+fun formatCurrentDuration(value: Long):String{
+    val minutes = TimeUnit.MILLISECONDS.toMinutes(value)
+    val seconds = TimeUnit.MILLISECONDS.toSeconds(value) - TimeUnit.MINUTES.toSeconds(minutes)
+    return String.format("%02d:%02d",minutes, seconds)
 }

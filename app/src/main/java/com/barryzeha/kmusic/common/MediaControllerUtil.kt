@@ -10,6 +10,7 @@ import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
+import com.barryzeha.kmusic.MainApp
 import com.barryzeha.kmusic.service.PlaybackService
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
@@ -28,8 +29,8 @@ fun rememberManagedMediaController(lifecycle:Lifecycle = LocalLifecycleOwner.cur
     DisposableEffect(lifecycle) {
         val observer = LifecycleEventObserver{_,event->
             when(event){
-                Lifecycle.Event.ON_START->controllerManager.initialize()
-                Lifecycle.Event.ON_STOP->controllerManager.release()
+                Lifecycle.Event.ON_START->{controllerManager.initialize()}
+                Lifecycle.Event.ON_STOP->{controllerManager.release()}
                 else->{}
             }
         }

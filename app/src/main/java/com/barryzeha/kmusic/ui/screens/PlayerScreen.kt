@@ -1,9 +1,6 @@
 package com.barryzeha.kmusic.ui.screens
 
 import android.annotation.SuppressLint
-import android.os.Build
-import android.util.Log
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.MarqueeAnimationMode
@@ -55,6 +52,7 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.util.UnstableApi
 import com.barryzeha.kmusic.R
 import com.barryzeha.kmusic.common.PlayerState
+import com.barryzeha.kmusic.common.formatCurrentDuration
 import com.barryzeha.kmusic.common.loadArtwork
 import com.barryzeha.kmusic.ui.viewmodel.MainViewModel
 
@@ -148,12 +146,13 @@ fun SongDescription(metadata: MediaMetadata){
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Seekbar(playerState: PlayerState){
-    var sliderValue by remember { mutableStateOf(0L) }
+    var currentProgressSong by remember { mutableStateOf(0L) }
     var duration by remember { mutableStateOf(0L) }
+
     LaunchedEffect(playerState) {
         duration = if(playerState.player.duration<0) 0 else playerState.player.duration
         snapshotFlow { playerState.currentPosition }
-            .collect { sliderValue = it
+            .collect { currentProgressSong = it
             }
     }
 
@@ -163,9 +162,12 @@ fun Seekbar(playerState: PlayerState){
         .padding(top = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally) {
         Slider(modifier= Modifier.fillMaxWidth()
-            ,value = sliderValue.toFloat(),
+            ,value = currentProgressSong.toFloat(),
             onValueChange = { newValue ->
-                playerState.player.seekTo(newValue.toLong())
+                currentProgressSong = newValue.toLong()
+            },
+            onValueChangeFinished = {
+                playerState.player.seekTo(currentProgressSong)
             },
             valueRange = 0f..(duration.toFloat()),
             thumb = {
@@ -188,12 +190,12 @@ fun Seekbar(playerState: PlayerState){
         )
         Box(modifier = Modifier.fillMaxWidth()) {
             Text(modifier =Modifier.padding(start = 12.dp),
-                text = "00:00",
+                text = formatCurrentDuration(currentProgressSong),
                 fontSize = 12.sp)
             Text(modifier=Modifier
                 .align(Alignment.CenterEnd)
                 .padding(end = 12.dp),
-                text = "00:00",
+                text = formatCurrentDuration(duration),
                 fontSize = 12.sp
                 )
         }

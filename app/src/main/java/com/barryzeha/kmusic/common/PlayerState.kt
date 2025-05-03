@@ -1,5 +1,6 @@
 package com.barryzeha.kmusic.common
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -22,6 +23,7 @@ import kotlin.time.Duration.Companion.seconds
  ***/
 
 fun Player.state():PlayerState{
+    val instance = PlayerStateImpl.getInstance(this)
     return PlayerStateImpl(this)
 }
 
@@ -30,17 +32,18 @@ interface PlayerState{
     val currentMediaItem: MediaItem?
     val mediaMetadata: MediaMetadata
     val timeLine: Timeline
-    val mediaItemIndex:Int
+    var mediaItemIndex:Int
     val currentPosition: Long
     @get:Player.State
     val playbackState: Int
     val isPlaying: Boolean
-
+    fun attachListener()
     fun dispose()
     fun currentPositionCheck()
 
 }
 internal class PlayerStateImpl(override val player: Player): PlayerState{
+
     override var currentMediaItem: MediaItem? by mutableStateOf(player.currentMediaItem)
         private set
     override var mediaMetadata: MediaMetadata by mutableStateOf(player.mediaMetadata)
@@ -48,7 +51,7 @@ internal class PlayerStateImpl(override val player: Player): PlayerState{
     override var timeLine: Timeline by mutableStateOf(player.currentTimeline)
         private set
     override var mediaItemIndex: Int by mutableStateOf(player.currentMediaItemIndex)
-        private set
+        set
     override var playbackState: Int by mutableIntStateOf(player.playbackState)
         private set
     override var isPlaying: Boolean by mutableStateOf(player.isPlaying)
@@ -84,22 +87,37 @@ internal class PlayerStateImpl(override val player: Player): PlayerState{
         }
 
     }
-    init{
+    /*init{
+        player.addListener(listener)
+    }*/
+    override fun attachListener() {
         player.addListener(listener)
     }
+
     override fun dispose() {
         player.removeListener(listener)
     }
     override fun currentPositionCheck() {
         CoroutineScope(Dispatchers.IO).launch {
-            if(isPlaying){
+            //if(isPlaying){
                 while (true){
                     withContext(Dispatchers.Main) {
                         currentPosition = player.currentPosition
                     }
                     delay(500)
+                    Log.e("CURRENT_POS", currentPosition.toString())
                 }
+            //}
+        }
+    }
+    companion object{
+        private var instance: PlayerStateImpl?=null
+
+        fun getInstance(player: Player): PlayerStateImpl?{
+            if(instance==null){
+                instance= PlayerStateImpl(player)
             }
+            return instance
         }
     }
 }

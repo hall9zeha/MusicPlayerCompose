@@ -2,6 +2,7 @@ package com.barryzeha.kmusic.ui.components
 
 import android.os.Build
 import android.util.Log
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
@@ -25,9 +26,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -41,12 +44,20 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.media3.common.Player
+import com.barryzeha.kmusic.MainApp
 import com.barryzeha.kmusic.R
 import com.barryzeha.kmusic.common.PlayerState
 import com.barryzeha.kmusic.common.loadArtwork
 import com.barryzeha.kmusic.common.playMediaAtIndex
 import com.barryzeha.kmusic.ui.theme.Typography
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 
 /****
  * Project KMusic
@@ -58,6 +69,7 @@ import com.barryzeha.kmusic.ui.theme.Typography
 @RequiresApi(Build.VERSION_CODES.R)
 @Composable
 fun MiniPlayerView(modifier:Modifier = Modifier, playerState: PlayerState? ){
+    val context = LocalContext.current
 
     Card(modifier = modifier,
         shape = RoundedCornerShape(8.dp)
@@ -73,11 +85,7 @@ fun MiniPlayerView(modifier:Modifier = Modifier, playerState: PlayerState? ){
             ) {
                 val currentMediaItem = playerState?.currentMediaItem
                 if (currentMediaItem != null) {
-                    LaunchedEffect(true) {
-                        playerState.player.seekToDefaultPosition(if(playerState.mediaItemIndex > 0)playerState.mediaItemIndex else 0)
-                        playerState.player.prepare()
-                    }
-                    MiniPlayerCoverArt(
+                   MiniPlayerCoverArt(
                         modifier = Modifier
                             .aspectRatio(1f)
                             .padding(4.dp),
@@ -171,14 +179,22 @@ fun PlayPauseButton(modifier: Modifier = Modifier,
 fun ProgressLine(modifier: Modifier, player: PlayerState){
     var currentPos = remember { mutableLongStateOf(0L) }
     val duration = remember {mutableLongStateOf(0L)}
+    val isPlaying = remember{ mutableStateOf(player.isPlaying) }
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
 
-    LaunchedEffect(player.isPlaying) {
+    LaunchedEffect(player) {
         player.currentPositionCheck()
-        duration.longValue=player.player.duration
-        snapshotFlow {player.currentPosition  }
-            .collect {pos-> currentPos.longValue = pos
-                Log.e("CURRENT_POS", currentPos.longValue.toString() )
+        duration.longValue = player.player.duration
+        Log.e("LAUNCH_ONCE","Lanzamiento")
+    }
+    LaunchedEffect(player.isPlaying) {
+        duration.longValue = player.player.duration
+        snapshotFlow { player.currentPosition }
+            .collect { pos ->
+                currentPos.longValue = pos
+                Log.e("CURRENT_POS", currentPos.longValue.toString())
             }
+
     }
     if(player.player.currentMediaItem!=null) {
         LinearProgressIndicator(

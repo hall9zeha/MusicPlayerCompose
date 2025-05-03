@@ -2,6 +2,7 @@ package com.barryzeha.kmusic
 
 import android.app.Application
 import android.content.Context
+import com.barryzeha.kmusic.common.MyPreferences
 
 /****
  * Project KMusic
@@ -10,7 +11,11 @@ import android.content.Context
  ***/
 
 class MainApp: Application() {
+    companion object{
+        var mPrefs: MyPreferences?=null
+    }
     override fun attachBaseContext(base: Context?) {
         super.attachBaseContext(base)
+        mPrefs = MyPreferences(this)
     }
 }

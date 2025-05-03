@@ -24,6 +24,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.session.MediaController
+import com.barryzeha.kmusic.MainApp
 import com.barryzeha.kmusic.common.PlayerState
 import com.barryzeha.kmusic.common.playMediaAtIndex
 import com.barryzeha.kmusic.common.updatePlaylist
@@ -69,6 +70,7 @@ fun VerticalRecyclerView(mediaController: MediaController?,songsList: List<SongE
         itemsIndexed(songsList) { index,song->
             SongItem(song) { song ->
                 mediaController?.playMediaAtIndex(index)
+                MainApp.mPrefs?.currentIndexSaved = index
             }
         }
 
