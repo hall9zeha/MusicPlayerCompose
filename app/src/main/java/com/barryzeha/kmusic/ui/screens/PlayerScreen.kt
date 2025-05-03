@@ -66,12 +66,7 @@ fun PlayerScreen(mainViewModel: MainViewModel = viewModel(), playerState: Player
     LaunchedEffect(true){
         mainViewModel.scanSongs()
     }
-    val response by mainViewModel.songsList.collectAsStateWithLifecycle()
-    /*var count =0
-    response.forEach {
-        count++
-        Log.e("PISTA", "$count -> ${it.title}" )
-    }*/
+
     Box(Modifier
         .fillMaxSize()
         .padding(8.dp)){

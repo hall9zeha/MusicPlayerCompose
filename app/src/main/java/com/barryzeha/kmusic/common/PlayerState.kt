@@ -1,5 +1,6 @@
 package com.barryzeha.kmusic.common
 
+import android.media.session.MediaController
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -110,10 +111,11 @@ internal class PlayerStateImpl(override val player: Player): PlayerState{
             //}
         }
     }
+
     companion object{
         private var instance: PlayerStateImpl?=null
 
-        fun getInstance(player: Player): PlayerStateImpl?{
+        fun getInstance(player: Player): PlayerState?{
             if(instance==null){
                 instance= PlayerStateImpl(player)
             }

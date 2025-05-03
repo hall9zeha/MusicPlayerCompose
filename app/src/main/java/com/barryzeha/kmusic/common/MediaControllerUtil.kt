@@ -14,6 +14,9 @@ import com.barryzeha.kmusic.MainApp
 import com.barryzeha.kmusic.service.PlaybackService
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 /****
  * Project KMusic
@@ -29,8 +32,8 @@ fun rememberManagedMediaController(lifecycle:Lifecycle = LocalLifecycleOwner.cur
     DisposableEffect(lifecycle) {
         val observer = LifecycleEventObserver{_,event->
             when(event){
-                Lifecycle.Event.ON_START->{controllerManager.initialize()}
-                Lifecycle.Event.ON_STOP->{controllerManager.release()}
+                Lifecycle.Event.ON_CREATE->{controllerManager.initialize()}
+                Lifecycle.Event.ON_DESTROY->{controllerManager.release()}
                 else->{}
             }
         }
@@ -42,7 +45,7 @@ fun rememberManagedMediaController(lifecycle:Lifecycle = LocalLifecycleOwner.cur
 }
 
 @Stable
-internal class MediaControllerManager private constructor(context: Context): RememberObserver{
+internal class MediaControllerManager internal constructor(context: Context): RememberObserver{
     private val appContext = context.applicationContext
     private var factory: ListenableFuture<MediaController>? = null
     var controller = mutableStateOf<MediaController?>(null)
@@ -50,16 +53,19 @@ internal class MediaControllerManager private constructor(context: Context): Rem
     init {
         initialize()
     }
+    fun initialize(){
 
-    internal fun initialize(){
         if(factory == null || factory?.isDone == true){
             factory = MediaController.Builder(
                 appContext,
                 SessionToken(appContext, ComponentName(appContext, PlaybackService::class.java))
             ).buildAsync()
         }
+        factory?.addListener(
+            {
+               controller.value = factory?.let{if(it.isDone) it.get() else null}
 
-        factory?.addListener({controller.value = factory?.let{if(it.isDone) it.get() else null}}, MoreExecutors.directExecutor())
+            }, MoreExecutors.directExecutor())
     }
     internal fun release(){
         factory?.let{

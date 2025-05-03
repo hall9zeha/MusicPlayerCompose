@@ -41,6 +41,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.barryzeha.kmusic.common.MediaControllerManager
 import com.barryzeha.kmusic.common.PlayerState
 import com.barryzeha.kmusic.common.checkPermissions
 import com.barryzeha.kmusic.common.rememberManagedMediaController
@@ -80,6 +81,7 @@ class MainActivity : ComponentActivity() {
             }
             val context = LocalContext.current
             val lifecycle = LocalLifecycleOwner.current.lifecycle
+
             val mediaController by rememberManagedMediaController()
             var playerState: PlayerState? by remember{
                 mutableStateOf(mediaController?.state())
