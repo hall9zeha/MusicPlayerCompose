@@ -68,35 +68,7 @@ class PlaybackService:MediaSessionService(){
         )
         mediaSession = MediaSession.Builder(this, player!!).build()
     }
-    fun addMediaItems(list: List<SongEntity>){
 
-    }
-    fun addMediaItem(song: SongEntity){
-        val mediaItem=MediaItem.Builder()
-            .setMediaId(song.idSong.toString())
-            .setUri(song.pathFile)
-            .setMediaMetadata(
-                MediaMetadata.Builder()
-                    .setArtist(song.artist)
-                    .setTitle(song.title).build()
-            ).build()
-        player?.addMediaItem(mediaItem)
-        play()
-    }
-    fun play(){
-        player?.prepare()
-        player?.play()
-
-    }
-    fun pause(){
-        player?.pause()
-    }
-    fun next(){
-        player?.seekToNext()
-    }
-    fun previous(){
-        player?.seekToPrevious()
-    }
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? {
         return mediaSession
     }
