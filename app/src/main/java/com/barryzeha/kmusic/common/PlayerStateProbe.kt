@@ -1,7 +1,5 @@
-/*
 package com.barryzeha.kmusic.common
 
-import android.media.session.MediaController
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -16,20 +14,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.time.Duration.Companion.seconds
 
-*/
 /****
- * Project KMusic
- * Created by Barry Zea H. on 27/04/25.
- * Copyright (c)  All rights reserved.
- ***//*
+* Project KMusic
+* Created by Barry Zea H. on 4/05/25.
+* Copyright (c)  All rights reserved.
+***/
 
-
-fun Player.state():PlayerState{
-    val instance = PlayerStateImpl.getInstance(this)
-    return PlayerStateImpl(this)
-}
 
 interface PlayerState{
     val player: Player
@@ -46,8 +37,9 @@ interface PlayerState{
     fun currentPositionCheck()
 
 }
-internal class PlayerStateImpl(override val player: Player): PlayerState{
-
+internal class PlayerStateImpl(): PlayerState{
+    override var player: Player by mutableStateOf(playerInstance)
+        set
     override var currentMediaItem: MediaItem? by mutableStateOf(player.currentMediaItem)
         private set
     override var mediaMetadata: MediaMetadata by mutableStateOf(player.mediaMetadata)
@@ -91,11 +83,9 @@ internal class PlayerStateImpl(override val player: Player): PlayerState{
         }
 
     }
-    */
-/*init{
+    /*init{
         player.addListener(listener)
-    }*//*
-
+    }*/
     override fun attachListener() {
         player.addListener(listener)
     }
@@ -103,28 +93,30 @@ internal class PlayerStateImpl(override val player: Player): PlayerState{
     override fun dispose() {
         player.removeListener(listener)
     }
+
     override fun currentPositionCheck() {
         CoroutineScope(Dispatchers.IO).launch {
             //if(isPlaying){
-                while (true){
-                    withContext(Dispatchers.Main) {
-                        currentPosition = player.currentPosition
-                    }
-                    delay(500)
-                    Log.e("CURRENT_POS", currentPosition.toString())
+            while (true){
+                withContext(Dispatchers.Main) {
+                    currentPosition = player.currentPosition
                 }
+                delay(500)
+                Log.e("CURRENT_POS", currentPosition.toString())
+            }
             //}
         }
     }
 
     companion object{
         private var instance: PlayerStateImpl?=null
-
+        private lateinit var playerInstance: Player
         fun getInstance(player: Player): PlayerState?{
+            playerInstance=player
             if(instance==null){
-                instance= PlayerStateImpl(player)
+                instance= PlayerStateImpl()
             }
             return instance
         }
     }
-}*/
+}

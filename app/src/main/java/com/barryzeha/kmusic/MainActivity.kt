@@ -2,8 +2,6 @@ package com.barryzeha.kmusic
 
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -37,21 +35,17 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.barryzeha.kmusic.common.MediaControllerManager
+import com.barryzeha.kmusic.common.MediaControllerProbe
 import com.barryzeha.kmusic.common.PlayerState
 import com.barryzeha.kmusic.common.checkPermissions
-import com.barryzeha.kmusic.common.rememberManagedMediaController
-import com.barryzeha.kmusic.common.state
 import com.barryzeha.kmusic.ui.components.MiniPlayerView
 import com.barryzeha.kmusic.ui.screens.PlayListScreen
 import com.barryzeha.kmusic.ui.screens.PlayerScreen
 import com.barryzeha.kmusic.ui.theme.KMusicTheme
 import com.barryzeha.kmusic.ui.viewmodel.MainViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -82,9 +76,12 @@ class MainActivity : ComponentActivity() {
             val context = LocalContext.current
             val lifecycle = LocalLifecycleOwner.current.lifecycle
 
-            val mediaController by rememberManagedMediaController()
+            //val mediaController by rememberManagedMediaController()
+            val mediaControllerInstance = remember{ MediaControllerProbe.getInstance(this) }
+            val mediaController by remember{mediaControllerInstance.controller}
+            val state by remember { mediaControllerInstance.state }.collectAsStateWithLifecycle()
             var playerState: PlayerState? by remember{
-                mutableStateOf(mediaController?.state())
+                mutableStateOf(state)
             }
 
             // For bottom sheet
@@ -99,9 +96,13 @@ class MainActivity : ComponentActivity() {
                     when(event){
                         Lifecycle.Event.ON_STOP->{
                             MainApp.mPrefs?.currentSongDuration = playerState?.currentPosition!!
+                            mediaControllerInstance.release()
                         }
                         Lifecycle.Event.ON_RESUME->{
                             playerState?.attachListener()
+                        }
+                        Lifecycle.Event.ON_DESTROY->{
+                            mediaControllerInstance.release()
                         }
                         else->{}
                     }
@@ -111,7 +112,7 @@ class MainActivity : ComponentActivity() {
             }
             DisposableEffect(key1 = mediaController) {
                 mediaController?.run {
-                    playerState = state()
+                    playerState = state
                     playerState?.attachListener()
                     if(!hasInitialized.value){
                         playerState?.let{player->
