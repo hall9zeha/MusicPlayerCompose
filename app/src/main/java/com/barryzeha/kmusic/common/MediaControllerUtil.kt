@@ -2,88 +2,65 @@ package com.barryzeha.kmusic.common
 
 import android.content.ComponentName
 import android.content.Context
-import androidx.compose.runtime.*
-import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LifecycleEventEffect
-import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.mutableStateOf
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
-import com.barryzeha.kmusic.MainApp
 import com.barryzeha.kmusic.service.PlaybackService
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 /****
- * Project KMusic
- * Created by Barry Zea H. on 26/04/25.
- * Copyright (c)  All rights reserved.
- ***/
+* Project KMusic
+* Created by Barry Zea H. on 4/05/25.
+* Copyright (c)  All rights reserved.
+***/
 
-@Composable
-fun rememberManagedMediaController(lifecycle:Lifecycle = LocalLifecycleOwner.current.lifecycle):State<MediaController?>{
-
-    val appContext = LocalContext.current.applicationContext
-    val controllerManager = remember { MediaControllerManager.getInstance(appContext) }
-    DisposableEffect(lifecycle) {
-        val observer = LifecycleEventObserver{_,event->
-            when(event){
-                Lifecycle.Event.ON_CREATE->{controllerManager.initialize()}
-                Lifecycle.Event.ON_DESTROY->{controllerManager.release()}
-                else->{}
-            }
-        }
-        lifecycle.addObserver(observer)
-        onDispose { lifecycle.removeObserver(observer) }
-
-    }
-    return controllerManager.controller
-}
 
 @Stable
-internal class MediaControllerManager internal constructor(context: Context): RememberObserver{
+class MediaControllerUtil internal constructor(context: Context){
     private val appContext = context.applicationContext
     private var factory: ListenableFuture<MediaController>? = null
     var controller = mutableStateOf<MediaController?>(null)
+    private var _state = MutableStateFlow<PlayerState?>(null)
+    val state = _state.asStateFlow()
 
     init {
         initialize()
     }
     fun initialize(){
-
-        if(factory == null || factory?.isDone == true){
-            factory = MediaController.Builder(
-                appContext,
-                SessionToken(appContext, ComponentName(appContext, PlaybackService::class.java))
-            ).buildAsync()
+        if (factory == null || factory?.isDone == true) {
+                factory = MediaController.Builder(
+                    appContext,
+                    SessionToken(appContext, ComponentName(appContext, PlaybackService::class.java))
+                ).buildAsync()
         }
         factory?.addListener(
             {
-               controller.value = factory?.let{if(it.isDone) it.get() else null}
+                controller.value = factory?.let { if (it.isDone) it.get() else null }
+                _state.value = PlayerStateImpl.getInstance(controller.value!!)!!
+            }, MoreExecutors.directExecutor()
+        )
 
-            }, MoreExecutors.directExecutor())
     }
     internal fun release(){
         factory?.let{
-            MediaController.releaseFuture(it)
-            controller.value = null
+           //MediaController.releaseFuture(it)
+           controller.value = null
         }
-        factory = null
+       factory = null
     }
-    override fun onAbandoned() {release()}
-    override fun onForgotten() {release() }
-    override fun onRemembered() {}
+
     companion object{
         @Volatile
-        private var instance: MediaControllerManager? = null
+        private var instance: MediaControllerUtil? = null
 
-        fun getInstance(context: Context): MediaControllerManager{
+        fun getInstance(context: Context): MediaControllerUtil{
+
             return instance?:synchronized(this) {
-                instance?: MediaControllerManager(context).also { instance = it }
+                instance?: MediaControllerUtil(context).also { instance = it }
             }
         }
     }

@@ -5,6 +5,7 @@ import android.media.audiofx.AudioEffect
 
 import android.os.Build
 import android.os.IBinder
+import android.util.Log
 import androidx.annotation.OptIn
 import androidx.annotation.RequiresApi
 import androidx.media3.common.AudioAttributes
@@ -37,6 +38,7 @@ class PlaybackService:MediaSessionService(){
     override fun onCreate() {
         super.onCreate()
         setupPlayer()
+
     }
 
     @OptIn(UnstableApi::class)

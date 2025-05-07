@@ -60,7 +60,7 @@ dependencies {
     // ViewModel
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
-
+    implementation(libs.livedata)
     // Apache commons
     implementation(libs.commons.io)
 

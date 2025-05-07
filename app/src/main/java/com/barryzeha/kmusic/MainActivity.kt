@@ -2,6 +2,8 @@ package com.barryzeha.kmusic
 
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -23,6 +25,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -35,11 +38,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.barryzeha.kmusic.common.MediaControllerProbe
-import com.barryzeha.kmusic.common.PlayerState
+import androidx.lifecycle.eventFlow
 import com.barryzeha.kmusic.common.checkPermissions
 import com.barryzeha.kmusic.ui.components.MiniPlayerView
 import com.barryzeha.kmusic.ui.screens.PlayListScreen
@@ -76,13 +77,9 @@ class MainActivity : ComponentActivity() {
             val context = LocalContext.current
             val lifecycle = LocalLifecycleOwner.current.lifecycle
 
-            //val mediaController by rememberManagedMediaController()
-            val mediaControllerInstance = remember{ MediaControllerProbe.getInstance(this) }
-            val mediaController by remember{mediaControllerInstance.controller}
-            val state by remember { mediaControllerInstance.state }.collectAsStateWithLifecycle()
-            var playerState: PlayerState? by remember{
-                mutableStateOf(state)
-            }
+            var mediaControllerInstance by remember{mutableStateOf(mainViewModel.mediaController)}
+            val mediaController  by mainViewModel.controller
+            val playerState by  mainViewModel.playerState.observeAsState()
 
             // For bottom sheet
             val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -96,13 +93,14 @@ class MainActivity : ComponentActivity() {
                     when(event){
                         Lifecycle.Event.ON_STOP->{
                             MainApp.mPrefs?.currentSongDuration = playerState?.currentPosition!!
-                            mediaControllerInstance.release()
                         }
-                        Lifecycle.Event.ON_RESUME->{
+                        Lifecycle.Event.ON_START->{
                             playerState?.attachListener()
+                            mediaControllerInstance.initialize()
                         }
                         Lifecycle.Event.ON_DESTROY->{
                             mediaControllerInstance.release()
+                            playerState?.close()
                         }
                         else->{}
                     }
@@ -110,9 +108,9 @@ class MainActivity : ComponentActivity() {
                 lifecycle.addObserver(observer)
                 onDispose { lifecycle.removeObserver(observer) }
             }
-            DisposableEffect(key1 = mediaController) {
+            DisposableEffect(key1 = playerState) {
                 mediaController?.run {
-                    playerState = state
+                    //playerState = state
                     playerState?.attachListener()
                     if(!hasInitialized.value){
                         playerState?.let{player->
@@ -126,25 +124,12 @@ class MainActivity : ComponentActivity() {
                     }
                     hasInitialized.value=true
                     mainViewModel.setUpPlayer()
-
                 }
                 onDispose {
                     playerState?.dispose()
                 }
             }
-           /* LaunchedEffect(Unit) {
-                if(!hasInitialized.value){
-                    playerState?.let{player->
-                        val newIndex = if(MainApp.mPrefs?.currentIndexSaved!! > -1) MainApp.mPrefs?.currentIndexSaved!! else 0
-                        val currentProgressDuration= MainApp.mPrefs?.currentSongDuration
-                        player.mediaItemIndex =newIndex
-                        player.player.seekTo(newIndex,currentProgressDuration!!)
-                        player.player.prepare()
-                    }
-                    mainViewModel.setUpPlayer()
-                }
-                hasInitialized.value=true
-            }*/
+
             KMusicTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     innerPadding.calculateTopPadding()
@@ -154,7 +139,7 @@ class MainActivity : ComponentActivity() {
                         .padding(innerPadding)
 
                     ) {
-                        if (playerState != null/* && mediaController !=null*/) {
+                        if (playerState !=null) {
                             MiniPlayerView(
                                 modifier = Modifier
                                     .fillMaxWidth()

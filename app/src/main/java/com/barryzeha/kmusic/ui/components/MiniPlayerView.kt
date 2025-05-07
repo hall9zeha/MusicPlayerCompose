@@ -161,7 +161,8 @@ fun PlayPauseButton(modifier: Modifier = Modifier,
             modifier=modifier,
             progressTint = iconTint
         )
-    } else {
+    }
+    else {
         IconButton(
             modifier = modifier,
             onClick = { onPlayPauseClick() }
