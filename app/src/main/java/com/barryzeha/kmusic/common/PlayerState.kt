@@ -1,6 +1,6 @@
 package com.barryzeha.kmusic.common
 
-import android.util.Log
+import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -12,8 +12,10 @@ import androidx.media3.common.Timeline
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.time.Duration.Companion.milliseconds
 
 /****
 * Project KMusic
@@ -32,10 +34,11 @@ interface PlayerState{
     @get:Player.State
     val playbackState: Int
     val isPlaying: Boolean
-    fun attachListener()
+    var isDraggingProgressSlider: Boolean
+    fun registerListener()
     fun dispose()
     fun close()
-    fun currentPositionCheck()
+    fun startTrackingPlaybackPosition(context: Context)
 
 }
 internal class PlayerStateImpl(): PlayerState{
@@ -54,6 +57,8 @@ internal class PlayerStateImpl(): PlayerState{
         private set
     override var isPlaying: Boolean by mutableStateOf(player.isPlaying)
         private set
+    override var isDraggingProgressSlider: Boolean by mutableStateOf(false)
+        set
     override var currentPosition: Long by mutableStateOf(player.currentPosition)
         private set
 
@@ -85,34 +90,34 @@ internal class PlayerStateImpl(): PlayerState{
         }
 
     }
-
     /*init{
         player.addListener(listener)
     }*/
-    override fun attachListener() {
+    override fun registerListener() {
         player.addListener(listener)
     }
 
     override fun dispose() {
         player.removeListener(listener)
     }
-
     override fun close() {
-        enableLoop=false
-    }
 
-    override fun currentPositionCheck() {
-        enableLoop = true
+    }
+    override fun startTrackingPlaybackPosition(context: Context) {
         CoroutineScope(Dispatchers.IO).launch {
-            //if(isPlaying){
-            while (enableLoop){
+            // Para sincroizar la nueva posición de desplazamiento del slider con la vista y no haya cambios erráticos
+            // al mover el thumb y el desplazamiento sea más suave
+            val frameTime = (1f / context.display.refreshRate).toDouble().milliseconds
+
+            while (isActive) {
                 withContext(Dispatchers.Main) {
-                    currentPosition = player.currentPosition
+                    val currentPosition = player.currentPosition
+                    if (!isDraggingProgressSlider) {
+                        this@PlayerStateImpl.currentPosition = currentPosition
+                    }
                 }
-                delay(500)
-                Log.e("CURRENT_POS", currentPosition.toString())
+                delay(frameTime)
             }
-            //}
         }
     }
 

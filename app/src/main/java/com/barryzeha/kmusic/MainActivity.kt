@@ -2,8 +2,6 @@ package com.barryzeha.kmusic
 
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -40,7 +38,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.eventFlow
 import com.barryzeha.kmusic.common.checkPermissions
 import com.barryzeha.kmusic.ui.components.MiniPlayerView
 import com.barryzeha.kmusic.ui.screens.PlayListScreen
@@ -95,7 +92,7 @@ class MainActivity : ComponentActivity() {
                             MainApp.mPrefs?.currentSongDuration = playerState?.currentPosition!!
                         }
                         Lifecycle.Event.ON_START->{
-                            playerState?.attachListener()
+                            playerState?.registerListener()
                             mediaControllerInstance.initialize()
                         }
                         Lifecycle.Event.ON_DESTROY->{
@@ -111,7 +108,7 @@ class MainActivity : ComponentActivity() {
             DisposableEffect(key1 = playerState) {
                 mediaController?.run {
                     //playerState = state
-                    playerState?.attachListener()
+                    playerState?.registerListener()
                     if(!hasInitialized.value){
                         playerState?.let{player->
                             val newIndex = if(MainApp.mPrefs?.currentIndexSaved!! > -1) MainApp.mPrefs?.currentIndexSaved!! else 0

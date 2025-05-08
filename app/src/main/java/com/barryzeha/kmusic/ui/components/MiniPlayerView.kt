@@ -1,8 +1,6 @@
 package com.barryzeha.kmusic.ui.components
 
 import android.os.Build
-import android.util.Log
-import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
@@ -24,11 +22,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,24 +35,15 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.media3.common.Player
-import com.barryzeha.kmusic.MainApp
 import com.barryzeha.kmusic.R
 import com.barryzeha.kmusic.common.PlayerState
 import com.barryzeha.kmusic.common.loadArtwork
-import com.barryzeha.kmusic.common.playMediaAtIndex
 import com.barryzeha.kmusic.ui.theme.Typography
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
 
 /****
  * Project KMusic
@@ -178,22 +164,21 @@ fun PlayPauseButton(modifier: Modifier = Modifier,
 }
 @Composable
 fun ProgressLine(modifier: Modifier, player: PlayerState){
+    val context = LocalContext.current
     var currentPos = remember { mutableLongStateOf(0L) }
     val duration = remember {mutableLongStateOf(0L)}
     val isPlaying = remember{ mutableStateOf(player.isPlaying) }
     val lifecycle = LocalLifecycleOwner.current.lifecycle
 
     LaunchedEffect(player) {
-        player.currentPositionCheck()
+        player.startTrackingPlaybackPosition(context)
         duration.longValue = player.player.duration
-        Log.e("LAUNCH_ONCE","Lanzamiento")
     }
     LaunchedEffect(player.isPlaying) {
         duration.longValue = player.player.duration
         snapshotFlow { player.currentPosition }
             .collect { pos ->
                 currentPos.longValue = pos
-                Log.e("CURRENT_POS", currentPos.longValue.toString())
             }
 
     }

@@ -55,6 +55,9 @@ import com.barryzeha.kmusic.common.PlayerState
 import com.barryzeha.kmusic.common.formatCurrentDuration
 import com.barryzeha.kmusic.common.loadArtwork
 import com.barryzeha.kmusic.ui.viewmodel.MainViewModel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlin.time.Duration.Companion.milliseconds
 
 /****
  * Project KMusic
@@ -141,6 +144,7 @@ fun SongDescription(metadata: MediaMetadata){
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Seekbar(playerState: PlayerState){
+    val context = LocalContext.current
     var currentProgressSong by remember { mutableStateOf(0L) }
     var duration by remember { mutableStateOf(0L) }
 
@@ -160,10 +164,14 @@ fun Seekbar(playerState: PlayerState){
             ,value = currentProgressSong.toFloat(),
             onValueChange = { newValue ->
                 currentProgressSong = newValue.toLong()
+                playerState.isDraggingProgressSlider = true
+
             },
             onValueChangeFinished = {
-                playerState.player.seekTo(currentProgressSong)
+                playerState.isDraggingProgressSlider = false
+                playerState.player.seekTo(currentProgressSong.toLong())
             },
+
             valueRange = 0f..(duration.toFloat()),
             thumb = {
                 SliderDefaults.Thumb(
