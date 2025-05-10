@@ -37,6 +37,9 @@ class MainViewModel(private val application: Application): AndroidViewModel(appl
     private var _controller: MutableState<MediaController?> = mutableStateOf(null)
     val controller: State<MediaController?> get() = _controller
 
+    private var _playerScreenIsActive: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val playerScreenIsActive: StateFlow<Boolean> get() = _playerScreenIsActive
+
     private var _playerState: MutableLiveData<PlayerState?> = MutableLiveData(null)
     val playerState: LiveData<PlayerState?>  get() = _playerState
 
@@ -74,5 +77,10 @@ class MainViewModel(private val application: Application): AndroidViewModel(appl
         Log.e("VIEW_MODEL_CLEARED", "Release" )
         super.onCleared()
 
+    }
+    fun setPlayerScreenVisibility(isVisible: Boolean){
+        viewModelScope.launch {
+            _playerScreenIsActive.value = isVisible
+        }
     }
 }

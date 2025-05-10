@@ -1,6 +1,7 @@
 package com.barryzeha.kmusic.ui.screens
 
 import android.annotation.SuppressLint
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.MarqueeAnimationMode
@@ -30,10 +31,13 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -50,10 +54,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.util.UnstableApi
+import androidx.navigation.NavController
 import com.barryzeha.kmusic.R
 import com.barryzeha.kmusic.common.PlayerState
 import com.barryzeha.kmusic.common.formatCurrentDuration
 import com.barryzeha.kmusic.common.loadArtwork
+import com.barryzeha.kmusic.ui.theme.KMusicTheme
 import com.barryzeha.kmusic.ui.viewmodel.MainViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -65,27 +71,38 @@ import kotlin.time.Duration.Companion.milliseconds
  * Copyright (c)  All rights reserved.
  ***/
 @Composable
-fun PlayerScreen(mainViewModel: MainViewModel = viewModel(), playerState: PlayerState ) {
-    LaunchedEffect(true){
-        mainViewModel.scanSongs()
-    }
-
-    Box(Modifier
-        .fillMaxSize()
-        .padding(8.dp)){
-        Body(playerState)
+fun PlayerScreen(mainViewModel: MainViewModel, navController: NavController) {
+    val playerState by  mainViewModel.playerState.observeAsState()
+    KMusicTheme {
+        BackHandler {
+            navController.navigateUp()
+            mainViewModel.setPlayerScreenVisibility(false)
+        }
+       Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+           val padding = innerPadding
+           LaunchedEffect(true) {
+               mainViewModel.scanSongs()
+           }
+           Box(
+               Modifier
+                   .fillMaxSize()
+                   .padding(8.dp)
+           ) {
+               Body(playerState)
+           }
+        }
     }
 }
 
 @Composable
-fun Body(playerState: PlayerState) {
+fun Body(playerState: PlayerState?) {
 
     Column(modifier= Modifier
         .fillMaxSize()
         .padding(top = 48.dp),
         horizontalAlignment = Alignment.CenterHorizontally) {
-        CoverAlbumArt(playerState.currentMediaItem?.mediaId)
-        SongDescription(playerState.mediaMetadata)
+        CoverAlbumArt(playerState?.currentMediaItem?.mediaId)
+        SongDescription(playerState?.mediaMetadata!!)
         Seekbar(playerState)
         PlayerControls(playerState)
     }
