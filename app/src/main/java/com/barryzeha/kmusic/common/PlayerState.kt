@@ -1,7 +1,6 @@
 package com.barryzeha.kmusic.common
 
-import android.media.session.MediaController
-import android.util.Log
+import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -10,44 +9,59 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.common.Timeline
+import com.barryzeha.kmusic.MainApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Duration.Companion.milliseconds
 
 /****
- * Project KMusic
- * Created by Barry Zea H. on 27/04/25.
- * Copyright (c)  All rights reserved.
- ***/
+* Project KMusic
+* Created by Barry Zea H. on 4/05/25.
+* Copyright (c)  All rights reserved.
+***/
 
-fun Player.state():PlayerState{
-    val instance = PlayerStateImpl.getInstance(this)
-    return PlayerStateImpl(this)
-}
 
 interface PlayerState{
     val player: Player
     val currentMediaItem: MediaItem?
     val mediaMetadata: MediaMetadata
+
+    @get:Player.RepeatMode
+    val repeatMode:Int
+
+    val isShuffleMode: Boolean
     val timeLine: Timeline
     var mediaItemIndex:Int
     val currentPosition: Long
+
     @get:Player.State
     val playbackState: Int
+
     val isPlaying: Boolean
-    fun attachListener()
-    fun dispose()
-    fun currentPositionCheck()
+    var isDraggingProgressSlider: Boolean
+    fun registerListener()
+    fun unregisterListener()
+    fun setupRepeatAndShuffleMode()
+    fun close()
+    fun startTrackingPlaybackPosition(context: Context)
 
 }
-internal class PlayerStateImpl(override val player: Player): PlayerState{
+internal class PlayerStateImpl(): PlayerState{
 
+    override var player: Player by mutableStateOf(playerInstance)
+        set
     override var currentMediaItem: MediaItem? by mutableStateOf(player.currentMediaItem)
         private set
     override var mediaMetadata: MediaMetadata by mutableStateOf(player.mediaMetadata)
+        private set
+    @get:Player.RepeatMode
+    override var repeatMode: Int by mutableIntStateOf(player.repeatMode)
+        private set
+    override var isShuffleMode: Boolean by mutableStateOf(player.shuffleModeEnabled)
         private set
     override var timeLine: Timeline by mutableStateOf(player.currentTimeline)
         private set
@@ -57,8 +71,11 @@ internal class PlayerStateImpl(override val player: Player): PlayerState{
         private set
     override var isPlaying: Boolean by mutableStateOf(player.isPlaying)
         private set
+    override var isDraggingProgressSlider: Boolean by mutableStateOf(false)
+        set
     override var currentPosition: Long by mutableStateOf(player.currentPosition)
         private set
+
 
 
     private val listener = object:Player.Listener{
@@ -87,37 +104,58 @@ internal class PlayerStateImpl(override val player: Player): PlayerState{
             this@PlayerStateImpl.mediaItemIndex = player.currentMediaItemIndex
         }
 
+        override fun onRepeatModeChanged(repeatMode: Int) {
+            this@PlayerStateImpl.repeatMode = repeatMode
+        }
+
+        override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
+            this@PlayerStateImpl.isShuffleMode = shuffleModeEnabled
+        }
     }
-    /*init{
-        player.addListener(listener)
-    }*/
-    override fun attachListener() {
+    init{
+        setupRepeatAndShuffleMode()
+    }
+    override fun registerListener() {
         player.addListener(listener)
     }
 
-    override fun dispose() {
+    override fun unregisterListener() {
         player.removeListener(listener)
     }
-    override fun currentPositionCheck() {
+
+    override fun setupRepeatAndShuffleMode() {
+        player.shuffleModeEnabled = MainApp.mPrefs?.isShuffleMode!!
+        player.repeatMode = MainApp.mPrefs?.repeatMode!!
+    }
+
+    override fun close() {
+
+    }
+    override fun startTrackingPlaybackPosition(context: Context) {
         CoroutineScope(Dispatchers.IO).launch {
-            //if(isPlaying){
-                while (true){
-                    withContext(Dispatchers.Main) {
-                        currentPosition = player.currentPosition
+            // Para sincroizar la nueva posición de desplazamiento del slider con la vista y no haya cambios erráticos
+            // al mover el thumb y el desplazamiento sea más suave
+            val frameTime = (1f / context.display.refreshRate).toDouble().milliseconds
+
+            while (isActive) {
+                withContext(Dispatchers.Main) {
+                    val currentPosition = player.currentPosition
+                    if (!isDraggingProgressSlider) {
+                        this@PlayerStateImpl.currentPosition = currentPosition
                     }
-                    delay(500)
-                    Log.e("CURRENT_POS", currentPosition.toString())
                 }
-            //}
+                delay(frameTime)
+            }
         }
     }
 
     companion object{
         private var instance: PlayerStateImpl?=null
-
+        private lateinit var playerInstance: Player
         fun getInstance(player: Player): PlayerState?{
+            playerInstance=player
             if(instance==null){
-                instance= PlayerStateImpl(player)
+                instance= PlayerStateImpl()
             }
             return instance
         }

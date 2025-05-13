@@ -24,6 +24,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.session.MediaController
+import androidx.navigation.NavHostController
 import com.barryzeha.kmusic.MainApp
 import com.barryzeha.kmusic.common.PlayerState
 import com.barryzeha.kmusic.common.playMediaAtIndex
@@ -43,7 +44,7 @@ import com.barryzeha.kmusic.ui.viewmodel.MainViewModel
 @RequiresApi(Build.VERSION_CODES.R)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun PlayListScreen(mediaController: MediaController?, mainViewModel: MainViewModel = viewModel() ){
+fun PlayListScreen(mediaController: MediaController?, mainViewModel: MainViewModel = viewModel(), navController: NavHostController ){
     val songsList by mainViewModel.songsList.collectAsStateWithLifecycle()
     LaunchedEffect(songsList.isNotEmpty()) {
         mediaController?.updatePlaylist(songsList.map { it.toMediaItem() })

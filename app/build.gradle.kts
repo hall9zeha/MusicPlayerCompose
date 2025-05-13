@@ -60,7 +60,7 @@ dependencies {
     // ViewModel
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
-
+    implementation(libs.livedata)
     // Apache commons
     implementation(libs.commons.io)
 
@@ -68,4 +68,6 @@ dependencies {
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.session)
     implementation(libs.androidx.media3.common)
+    //Navigation
+    implementation(libs.navigation)
 }

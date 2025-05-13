@@ -1,6 +1,7 @@
 package com.barryzeha.kmusic.ui.screens
 
 import android.annotation.SuppressLint
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.MarqueeAnimationMode
@@ -21,6 +22,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Repeat
+import androidx.compose.material.icons.filled.RepeatOn
+import androidx.compose.material.icons.filled.RepeatOne
 import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
@@ -30,10 +33,14 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -46,14 +53,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import androidx.navigation.NavController
+import com.barryzeha.kmusic.MainApp
 import com.barryzeha.kmusic.R
 import com.barryzeha.kmusic.common.PlayerState
 import com.barryzeha.kmusic.common.formatCurrentDuration
 import com.barryzeha.kmusic.common.loadArtwork
+import com.barryzeha.kmusic.ui.theme.KMusicTheme
 import com.barryzeha.kmusic.ui.viewmodel.MainViewModel
 
 /****
@@ -62,27 +71,38 @@ import com.barryzeha.kmusic.ui.viewmodel.MainViewModel
  * Copyright (c)  All rights reserved.
  ***/
 @Composable
-fun PlayerScreen(mainViewModel: MainViewModel = viewModel(), playerState: PlayerState ) {
-    LaunchedEffect(true){
-        mainViewModel.scanSongs()
-    }
-
-    Box(Modifier
-        .fillMaxSize()
-        .padding(8.dp)){
-        Body(playerState)
+fun PlayerScreen(mainViewModel: MainViewModel, navController: NavController) {
+    val playerState by  mainViewModel.playerState.observeAsState()
+    KMusicTheme {
+        BackHandler {
+            mainViewModel.setPlayerScreenVisibility(false)
+            navController.navigateUp()
+        }
+       Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+           val padding = innerPadding
+           LaunchedEffect(true) {
+               mainViewModel.scanSongs()
+           }
+           Box(
+               Modifier
+                   .fillMaxSize()
+                   .padding(8.dp)
+           ) {
+               Body(playerState)
+           }
+        }
     }
 }
 
 @Composable
-fun Body(playerState: PlayerState) {
+fun Body(playerState: PlayerState?) {
 
     Column(modifier= Modifier
         .fillMaxSize()
         .padding(top = 48.dp),
         horizontalAlignment = Alignment.CenterHorizontally) {
-        CoverAlbumArt(playerState.currentMediaItem?.mediaId)
-        SongDescription(playerState.mediaMetadata)
+        CoverAlbumArt(playerState?.currentMediaItem?.mediaId)
+        SongDescription(playerState?.mediaMetadata!!)
         Seekbar(playerState)
         PlayerControls(playerState)
     }
@@ -141,6 +161,7 @@ fun SongDescription(metadata: MediaMetadata){
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Seekbar(playerState: PlayerState){
+    val context = LocalContext.current
     var currentProgressSong by remember { mutableStateOf(0L) }
     var duration by remember { mutableStateOf(0L) }
 
@@ -160,10 +181,14 @@ fun Seekbar(playerState: PlayerState){
             ,value = currentProgressSong.toFloat(),
             onValueChange = { newValue ->
                 currentProgressSong = newValue.toLong()
+                playerState.isDraggingProgressSlider = true
+
             },
             onValueChangeFinished = {
-                playerState.player.seekTo(currentProgressSong)
+                playerState.isDraggingProgressSlider = false
+                playerState.player.seekTo(currentProgressSong.toLong())
             },
+
             valueRange = 0f..(duration.toFloat()),
             thumb = {
                 SliderDefaults.Thumb(
@@ -200,6 +225,8 @@ fun Seekbar(playerState: PlayerState){
 @Composable
 fun PlayerControls(playerState: PlayerState){
     var playState by remember { mutableStateOf(playerState.isPlaying) }
+    var isShuffle by remember { mutableStateOf(MainApp.mPrefs?.isShuffleMode!!) }
+    var repeatMode by remember {mutableIntStateOf(MainApp.mPrefs?.repeatMode!!)}
 
     val playPause =if(!playState) Icons.Filled.PlayArrow else Icons.Filled.Pause
     Row(modifier = Modifier
@@ -210,8 +237,17 @@ fun PlayerControls(playerState: PlayerState){
         IconButton(modifier = Modifier
             .wrapContentSize()
             .padding(end = 24.dp),
-            onClick = {}){
+            onClick = {
+                playerState.player.shuffleModeEnabled = !playerState.player.shuffleModeEnabled
+                MainApp.mPrefs?.isShuffleMode = playerState.isShuffleMode
+                isShuffle=playerState.isShuffleMode
+                // reseteamos los valores del modo de repetición
+                playerState.player.repeatMode = Player.REPEAT_MODE_OFF
+                repeatMode = Player.REPEAT_MODE_OFF
+                MainApp.mPrefs?.repeatMode=Player.REPEAT_MODE_OFF
+            }){
             Icon(modifier = Modifier.size(20.dp),
+                tint = if(isShuffle) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                 imageVector = Icons.Filled.Shuffle,
                 contentDescription = "Shuffle")
         }
@@ -239,9 +275,35 @@ fun PlayerControls(playerState: PlayerState){
         IconButton(modifier=Modifier
             .wrapContentSize()
             .padding(start = 24.dp),
-            onClick = {}) {
+            onClick = {
+                val changeRepeatMode = when(repeatMode) {
+                    Player.REPEAT_MODE_OFF -> {
+                         Player.REPEAT_MODE_ONE
+                    }
+                    Player.REPEAT_MODE_ONE -> {
+                        Player.REPEAT_MODE_ALL
+                    }
+                    Player.REPEAT_MODE_ALL -> {
+                        Player.REPEAT_MODE_OFF
+                    }
+                   else -> Player.REPEAT_MODE_OFF
+               }
+                playerState.player.repeatMode = changeRepeatMode
+                MainApp.mPrefs?.repeatMode = changeRepeatMode
+                repeatMode = changeRepeatMode
+                // reseteamos los valores del modo aleatorio
+                playerState.player.shuffleModeEnabled = false
+                MainApp.mPrefs?.isShuffleMode = false
+                isShuffle = false
+            }) {
             Icon(modifier=Modifier.size(20.dp),
-                imageVector = Icons.Filled.Repeat,
+                tint = if(repeatMode !=0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                imageVector = when(repeatMode){
+                    Player.REPEAT_MODE_OFF->{Icons.Filled.Repeat}
+                    Player.REPEAT_MODE_ONE->{Icons.Filled.RepeatOne}
+                    Player.REPEAT_MODE_ALL->{Icons.Filled.RepeatOn}
+                    else->{Icons.Filled.Repeat}
+                },
                 contentDescription = "Repeat mode")
         }
 

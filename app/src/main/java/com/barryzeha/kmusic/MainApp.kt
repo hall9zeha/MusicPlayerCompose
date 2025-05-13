@@ -1,5 +1,6 @@
 package com.barryzeha.kmusic
 
+import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
 import com.barryzeha.kmusic.common.MyPreferences
@@ -13,9 +14,12 @@ import com.barryzeha.kmusic.common.MyPreferences
 class MainApp: Application() {
     companion object{
         var mPrefs: MyPreferences?=null
+        @SuppressLint("StaticFieldLeak")
+        var context: Context?=null
     }
     override fun attachBaseContext(base: Context?) {
         super.attachBaseContext(base)
         mPrefs = MyPreferences(this)
+        context = this
     }
 }
