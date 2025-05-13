@@ -16,6 +16,7 @@ import com.barryzeha.kmusic.common.PlayerState
 import com.barryzeha.kmusic.common.scanTracks
 import com.barryzeha.kmusic.data.SongEntity
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -80,6 +81,7 @@ class MainViewModel(private val application: Application): AndroidViewModel(appl
     }
     fun setPlayerScreenVisibility(isVisible: Boolean){
         viewModelScope.launch {
+            delay(300)
             _playerScreenIsActive.value = isVisible
         }
     }

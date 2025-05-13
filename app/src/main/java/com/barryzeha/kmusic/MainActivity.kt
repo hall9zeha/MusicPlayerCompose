@@ -43,7 +43,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.barryzeha.kmusic.common.PlayerState
 import com.barryzeha.kmusic.common.checkPermissions
 import com.barryzeha.kmusic.ui.components.MiniPlayerView
 import com.barryzeha.kmusic.ui.navigation.Routes
@@ -133,7 +132,7 @@ class MainActivity : ComponentActivity() {
                     mainViewModel.setUpPlayer()
                 }
                 onDispose {
-                    playerState?.dispose()
+                    playerState?.unregisterListener()
                 }
             }
 

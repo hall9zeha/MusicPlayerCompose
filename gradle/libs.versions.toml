@@ -15,7 +15,7 @@ lifecycleKtxVer = "2.6.2"
 media3Exoplayer = "1.6.1"
 media3Common = "1.6.1"
 media3Session = "1.6.1"
-nav_version = "2.5.3"
+nav_version = "2.9.0"
 runtimeLivedataVer = "1.7.8"
 
 
