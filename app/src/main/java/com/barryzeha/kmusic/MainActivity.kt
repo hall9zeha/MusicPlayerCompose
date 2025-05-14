@@ -10,6 +10,13 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.EaseIn
+import androidx.compose.animation.core.EaseOut
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -48,6 +55,7 @@ import com.barryzeha.kmusic.ui.components.MiniPlayerView
 import com.barryzeha.kmusic.ui.navigation.Routes
 import com.barryzeha.kmusic.ui.screens.PlayListScreen
 import com.barryzeha.kmusic.ui.screens.PlayerScreen
+import com.barryzeha.kmusic.ui.screens.SimpleSearchBar
 import com.barryzeha.kmusic.ui.theme.KMusicTheme
 import com.barryzeha.kmusic.ui.viewmodel.MainViewModel
 import kotlinx.coroutines.launch
@@ -156,8 +164,7 @@ class MainActivity : ComponentActivity() {
                                         coroutineScope.launch {
                                             mainViewModel.setPlayerScreenVisibility(true)
                                             navController.navigate(Routes.Player.route)
-                                            //sheetState.expand()
-                                            //openBottomSheet = true
+
                                         }
                                     },
                                 playerState = playerState!!
@@ -191,7 +198,28 @@ class MainActivity : ComponentActivity() {
             composable(Routes.Playlist.route){
                 PlayListScreen(mediaController, navController = navController)
             }
-            composable(Routes.Player.route){
+            composable(Routes.Player.route,
+                enterTransition = {
+                    fadeIn(
+                        animationSpec = tween(
+                            500, easing = LinearEasing
+                        )
+                    )+ slideIntoContainer(
+                        animationSpec = tween(500, easing = EaseIn),
+                        towards = AnimatedContentTransitionScope.SlideDirection.Up
+                    )
+                },
+                exitTransition = {
+                    fadeOut(
+                        animationSpec = tween(
+                            500, easing = LinearEasing
+                        )
+                    ) + slideOutOfContainer(
+                        animationSpec = tween(500, easing = EaseOut),
+                        towards = AnimatedContentTransitionScope.SlideDirection.Down
+                    )
+                }
+                ){
                 PlayerScreen(mainViewModel = mainViewModel, navController = navController)
             }
         }

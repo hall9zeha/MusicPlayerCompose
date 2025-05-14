@@ -28,3 +28,8 @@ fun Player.playMediaAtIndex(index: Int) {
     playWhenReady = true
     prepare()
 }
+fun Player.playMediaById(id:Int){
+    val mediaItems = currentMediaItems
+    val indexItem= mediaItems.indexOfFirst{item-> item.mediaId == id.toString()}
+    playMediaAtIndex(indexItem)
+}

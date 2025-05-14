@@ -19,6 +19,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -32,6 +33,11 @@ import kotlinx.coroutines.withContext
 class MainViewModel(private val application: Application): AndroidViewModel(application) {
     private var _songsList: MutableStateFlow<List<SongEntity>> = MutableStateFlow(listOf())
     val songsList: StateFlow<List<SongEntity>> = _songsList
+    
+    // For search filter
+    private var _filteredSongs: MutableStateFlow<List<SongEntity>> = MutableStateFlow(listOf())
+    val filteredSongs: StateFlow<List<SongEntity>> = _filteredSongs
+    
     private var _mediaController: MediaControllerUtil = MediaControllerUtil.getInstance(MainApp.context!!)
     val mediaController: MediaControllerUtil get() =  _mediaController
 
@@ -46,6 +52,10 @@ class MainViewModel(private val application: Application): AndroidViewModel(appl
 
     var isPlayerSetup: MutableStateFlow<Boolean> = MutableStateFlow(false)
          private set
+
+    private var _isSearch: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isSearch: StateFlow<Boolean> = _isSearch
+
     init {
         setUpController()
         setUpState()
@@ -55,6 +65,13 @@ class MainViewModel(private val application: Application): AndroidViewModel(appl
             withContext(Dispatchers.IO) {
                 _songsList.value = scanTracks(application.applicationContext)!!
             }
+        }
+    }
+    fun filteredSong(input: String){
+        _filteredSongs.value = songsList.value.filter{song->
+            song.title.contains(input, ignoreCase = true )||
+                    song.artist.contains(input, ignoreCase = true) ||
+                    song.album.contains(input, ignoreCase = true)
         }
     }
     fun setUpPlayer(){
@@ -71,6 +88,9 @@ class MainViewModel(private val application: Application): AndroidViewModel(appl
         viewModelScope.launch {
             _controller = _mediaController.controller
         }
+    }
+    fun setIsSearch(isSearch:Boolean){
+        _isSearch.value = isSearch
     }
 
     override fun onCleared() {
