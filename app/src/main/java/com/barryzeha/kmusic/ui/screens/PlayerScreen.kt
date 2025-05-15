@@ -1,6 +1,8 @@
 package com.barryzeha.kmusic.ui.screens
 
 import android.annotation.SuppressLint
+import android.content.res.Configuration
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -46,10 +48,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -73,6 +77,18 @@ import com.barryzeha.kmusic.ui.viewmodel.MainViewModel
 @Composable
 fun PlayerScreen(mainViewModel: MainViewModel, navController: NavController) {
     val playerState by  mainViewModel.playerState.observeAsState()
+    val configuration = LocalConfiguration.current
+
+    LaunchedEffect(Unit) {
+        when(configuration.orientation){
+            Configuration.ORIENTATION_LANDSCAPE->{
+                Log.e("HANDLE_ORIENTATION", "Landscape" )
+            }
+            else->{
+                Log.e("HANDLE_ORIENTATION", "Portrait" )
+            }
+        }
+    }
     KMusicTheme {
         BackHandler {
             mainViewModel.setPlayerScreenVisibility(false)
@@ -88,7 +104,8 @@ fun PlayerScreen(mainViewModel: MainViewModel, navController: NavController) {
                    .fillMaxSize()
                    .padding(8.dp)
            ) {
-               Body(playerState)
+               PlayerScreenLayout(playerState)
+              // Body(playerState)
            }
         }
     }
@@ -307,6 +324,98 @@ fun PlayerControls(playerState: PlayerState){
                 contentDescription = "Repeat mode")
         }
 
+    }
+}
+
+@Composable
+fun PlayerScreenLayout(playerState: PlayerState?){
+    Layout (
+        content={
+            CoverAlbumArt(playerState?.currentMediaItem?.mediaId)
+            SongDescription(playerState?.mediaMetadata!!)
+            Seekbar(playerState)
+            PlayerControls(playerState)
+        }
+    ){ measurables, constraints ->
+
+        val coverArtMeasurable = measurables[0]
+        val songDescMeasurable = measurables[1]
+        val seekbarMeasurable = measurables[2]
+        val playerControlsMeasurable = measurables[3]
+
+
+        val isLandscape = constraints.maxWidth > constraints.maxHeight
+
+        val coverArtWidth = if(isLandscape)(constraints.maxWidth * 0.3f).toInt()else(constraints.maxWidth * 1f).toInt() // 40% del ancho
+        val coverArtHeight = if(isLandscape)(constraints.maxHeight * 0.8f).toInt()else (constraints.maxHeight * 1f).toInt() // 40% de la altura
+
+        val seekbarWidth = if(isLandscape)(constraints.maxWidth * 0.6f).toInt()else(constraints.maxWidth * 1f).toInt() // 40% del ancho
+        val seekbarHeight = if(isLandscape)(constraints.maxHeight * 0.8f).toInt()else (constraints.maxHeight * 1f).toInt() // 40% de la altura
+
+        val controlsWidth = if(isLandscape)(constraints.maxWidth * 0.6f).toInt()else(constraints.maxWidth * 1f).toInt() // 40% del ancho
+        val controlsHeight = if(isLandscape)(constraints.maxHeight * 0.8f).toInt()else (constraints.maxHeight * 1f).toInt() // 40% de la altura
+
+
+        val coverArtPlaceable = coverArtMeasurable.measure(
+            Constraints(
+                maxWidth = coverArtWidth,
+                maxHeight = coverArtHeight
+            )
+        )
+        val seekbarPlaceable = seekbarMeasurable.measure(
+            Constraints(
+                maxWidth = seekbarWidth,
+                maxHeight = seekbarHeight
+            )
+        )
+        val playerControlsPlaceable = playerControlsMeasurable.measure(
+            Constraints(
+                maxWidth = controlsWidth,
+                maxHeight = controlsHeight
+            )
+        )
+        val songDescPlaceable = songDescMeasurable.measure(constraints)
+        //val seekbarPlaceable = seekbarMeasurable.measure(constraints)
+        //val playerControlsPlaceable = playerControlsMeasurable.measure(constraints)
+
+        layout(constraints.maxWidth, constraints.maxHeight) {
+            if (isLandscape) {
+                coverArtPlaceable.placeRelative(0, 0)
+
+                songDescPlaceable.placeRelative(coverArtPlaceable.width + 48.dp.roundToPx(), 32.dp.roundToPx())
+                seekbarPlaceable.placeRelative(coverArtPlaceable.width + 16.dp.roundToPx(), songDescPlaceable.height + 16.dp.roundToPx())
+
+                playerControlsPlaceable.placeRelative(
+                    coverArtPlaceable.width + 16.dp.roundToPx(),
+                    songDescPlaceable.height + seekbarPlaceable.height + 8.dp.roundToPx()
+                )
+            } else {
+
+                val totalHeight = coverArtPlaceable.height + songDescPlaceable.height + seekbarPlaceable.height + playerControlsPlaceable.height + 48.dp.toPx()
+                val verticalOffset = (constraints.maxHeight - totalHeight) / 2
+
+
+                coverArtPlaceable.placeRelative(
+                    (constraints.maxWidth - coverArtPlaceable.width) / 2,
+                    verticalOffset.toInt()
+                )
+
+                songDescPlaceable.placeRelative(
+                    (constraints.maxWidth - songDescPlaceable.width) / 2,
+                    coverArtPlaceable.height + verticalOffset.toInt() + 8.dp.roundToPx()
+                )
+
+                seekbarPlaceable.placeRelative(
+                    (constraints.maxWidth - seekbarPlaceable.width) / 2,
+                    songDescPlaceable.height + coverArtPlaceable.height + verticalOffset.toInt() + 4.dp.roundToPx()
+                )
+
+                playerControlsPlaceable.placeRelative(
+                    (constraints.maxWidth - playerControlsPlaceable.width) / 2,
+                    seekbarPlaceable.height + songDescPlaceable.height + coverArtPlaceable.height + verticalOffset.toInt() + 8.dp.roundToPx()
+                )
+            }
+        }
     }
 }
 
