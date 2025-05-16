@@ -1,6 +1,16 @@
 package com.barryzeha.kmusic.common
 
 import android.icu.text.Normalizer2
+import android.view.animation.PathInterpolator
+import androidx.compose.animation.core.Easing
+import androidx.compose.animation.core.TweenSpec
+import androidx.compose.animation.core.tween
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Stable
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.luminance
+import androidx.core.graphics.PathParser
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 

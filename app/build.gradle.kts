@@ -70,4 +70,5 @@ dependencies {
     implementation(libs.androidx.media3.common)
     //Navigation
     implementation(libs.navigation)
+
 }

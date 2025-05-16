@@ -54,11 +54,11 @@ import com.barryzeha.kmusic.ui.theme.Typography
 
 @RequiresApi(Build.VERSION_CODES.R)
 @Composable
-fun MiniPlayerView(modifier:Modifier = Modifier, playerState: PlayerState? ){
+fun MiniPlayerView(modifier:Modifier = Modifier, playerState: PlayerState?){
     val context = LocalContext.current
 
     Card(modifier = modifier,
-        shape = RoundedCornerShape(8.dp)
+        shape = RoundedCornerShape(0.dp)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             ProgressLine(modifier, playerState!!)
@@ -117,6 +117,7 @@ fun MiniPlayerCoverArt(modifier: Modifier, idSong: String){
     Card(modifier = modifier,
         shape = RoundedCornerShape(4.dp)
         ) {
+
         bitmap?.let {
             Image(
                 modifier = Modifier.fillMaxSize(),

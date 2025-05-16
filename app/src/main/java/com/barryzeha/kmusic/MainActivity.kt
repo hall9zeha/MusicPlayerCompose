@@ -94,13 +94,8 @@ class MainActivity : ComponentActivity() {
             val playerScreenIsActive by mainViewModel.playerScreenIsActive.collectAsState()
             val playerState by  mainViewModel.playerState.observeAsState()
 
-            // For bottom sheet
-            val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-
-            var openBottomSheet by rememberSaveable { mutableStateOf(false) }
             val coroutineScope = rememberCoroutineScope()
             val hasInitialized = remember{mutableStateOf(false)}
-            val setUpPlayer by mainViewModel.isPlayerSetup.collectAsStateWithLifecycle()
 
             DisposableEffect(lifecycle) {
                 val observer = LifecycleEventObserver{_, event->
@@ -124,7 +119,7 @@ class MainActivity : ComponentActivity() {
             }
             DisposableEffect(key1 = playerState) {
                 mediaController?.run {
-                    //playerState = state
+
                     playerState?.registerListener()
                     if(!hasInitialized.value){
                         playerState?.let{player->
@@ -134,10 +129,8 @@ class MainActivity : ComponentActivity() {
                             player.player.seekTo(newIndex,currentProgressDuration!!)
                             player.player.prepare()
                         }
-
                     }
                     hasInitialized.value=true
-                    mainViewModel.setUpPlayer()
                 }
                 onDispose {
                     playerState?.unregisterListener()
@@ -153,7 +146,7 @@ class MainActivity : ComponentActivity() {
                         .fillMaxSize()
                         .padding(innerPadding)
                     ) {
-                        Log.e("PLAY_STADO", playerScreenIsActive.toString())
+
                         if (playerState !=null && !playerScreenIsActive) {
                             MiniPlayerView(
                                 modifier = Modifier
@@ -202,10 +195,10 @@ class MainActivity : ComponentActivity() {
                 enterTransition = {
                     fadeIn(
                         animationSpec = tween(
-                            500, easing = LinearEasing
+                            400, easing = LinearEasing
                         )
                     )+ slideIntoContainer(
-                        animationSpec = tween(500, easing = EaseIn),
+                        animationSpec = tween(400, easing = EaseIn),
                         towards = AnimatedContentTransitionScope.SlideDirection.Up
                     )
                 },

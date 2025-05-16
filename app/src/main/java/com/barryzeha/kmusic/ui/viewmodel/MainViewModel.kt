@@ -50,9 +50,6 @@ class MainViewModel(private val application: Application): AndroidViewModel(appl
     private var _playerState: MutableLiveData<PlayerState?> = MutableLiveData(null)
     val playerState: LiveData<PlayerState?>  get() = _playerState
 
-    var isPlayerSetup: MutableStateFlow<Boolean> = MutableStateFlow(false)
-         private set
-
     private var _isSearch: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val isSearch: StateFlow<Boolean> = _isSearch
 
@@ -74,9 +71,7 @@ class MainViewModel(private val application: Application): AndroidViewModel(appl
                     song.album.contains(input, ignoreCase = true)
         }
     }
-    fun setUpPlayer(){
-        isPlayerSetup.update { true }
-    }
+
     fun setUpState(){
         viewModelScope.launch {
             _mediaController.state.collect { statePlayer ->

@@ -3,6 +3,8 @@ package com.barryzeha.kmusic.ui.components
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,13 +15,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.material3.ripple
-import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -43,6 +43,7 @@ import com.barryzeha.kmusic.ui.theme.Typography
 fun SongItem(song: SongEntity, onItemClick:(song: SongEntity)->Unit){
 
     val bitmap = loadArtwork(LocalContext.current,song.idSong)
+
     Row(modifier=Modifier.fillMaxWidth().clickable(
         onClick = {onItemClick(song)},
         interactionSource = remember { MutableInteractionSource() },
@@ -54,6 +55,9 @@ fun SongItem(song: SongEntity, onItemClick:(song: SongEntity)->Unit){
                 elevation = CardDefaults.cardElevation(0.dp),
                 shape = RoundedCornerShape(4.dp)
             ) {
+               /* coverArt?.let{
+                    AsyncImage(coverArt,"cover art")
+                }*/
                 bitmap?.let {
                     Image(
                         modifier = Modifier.fillMaxSize(),
@@ -64,7 +68,7 @@ fun SongItem(song: SongEntity, onItemClick:(song: SongEntity)->Unit){
                 }?:run{
                     Image(
                         modifier = Modifier.fillMaxSize(),
-                        painter = painterResource(R.drawable.ic_launcher_background),
+                        painter = painterResource( R.drawable.ic_launcher_background,),
                         contentDescription = "Album cover",
                         contentScale = ContentScale.Crop
                     )
@@ -77,9 +81,6 @@ fun SongItem(song: SongEntity, onItemClick:(song: SongEntity)->Unit){
         }
     }
 }
-
-
-
 @RequiresApi(Build.VERSION_CODES.R)
 @Preview(showBackground = true, showSystemUi = true)
 @Composable

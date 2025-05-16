@@ -104,7 +104,7 @@ fun PlayerScreen(mainViewModel: MainViewModel, navController: NavController) {
                    .fillMaxSize()
                    .padding(8.dp)
            ) {
-               PlayerScreenLayout(playerState)
+               PlayerScreenLayoutByOrientation(playerState)
               // Body(playerState)
            }
         }
@@ -225,7 +225,7 @@ fun Seekbar(playerState: PlayerState){
                     sliderState = sliderState, thumbTrackGapSize = 0.dp)
             }
         )
-        Box(modifier = Modifier.fillMaxWidth()) {
+        Box(modifier = Modifier.fillMaxWidth().padding(0.dp)) {
             Text(modifier =Modifier.padding(start = 12.dp),
                 text = formatCurrentDuration(currentProgressSong),
                 fontSize = 12.sp)
@@ -328,7 +328,7 @@ fun PlayerControls(playerState: PlayerState){
 }
 
 @Composable
-fun PlayerScreenLayout(playerState: PlayerState?){
+fun PlayerScreenLayoutByOrientation(playerState: PlayerState?){
     Layout (
         content={
             CoverAlbumArt(playerState?.currentMediaItem?.mediaId)
@@ -375,8 +375,6 @@ fun PlayerScreenLayout(playerState: PlayerState?){
             )
         )
         val songDescPlaceable = songDescMeasurable.measure(constraints)
-        //val seekbarPlaceable = seekbarMeasurable.measure(constraints)
-        //val playerControlsPlaceable = playerControlsMeasurable.measure(constraints)
 
         layout(constraints.maxWidth, constraints.maxHeight) {
             if (isLandscape) {
