@@ -19,8 +19,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -53,9 +51,13 @@ class MainViewModel(private val application: Application): AndroidViewModel(appl
     private var _isSearch: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val isSearch: StateFlow<Boolean> = _isSearch
 
+    private var _hasInitialized: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val hasInitialized: StateFlow<Boolean> = _hasInitialized
+
     init {
         setUpController()
         setUpState()
+
     }
     fun scanSongs(){
         viewModelScope.launch {
@@ -87,9 +89,12 @@ class MainViewModel(private val application: Application): AndroidViewModel(appl
     fun setIsSearch(isSearch:Boolean){
         _isSearch.value = isSearch
     }
+    fun setHasInitialized(isInitialized: Boolean){
+        _hasInitialized.value = isInitialized
+    }
 
     override fun onCleared() {
-        mediaController.release()
+        mediaController.destroy()
         Log.e("VIEW_MODEL_CLEARED", "Release" )
         super.onCleared()
 
@@ -100,4 +105,5 @@ class MainViewModel(private val application: Application): AndroidViewModel(appl
             _playerScreenIsActive.value = isVisible
         }
     }
+
 }

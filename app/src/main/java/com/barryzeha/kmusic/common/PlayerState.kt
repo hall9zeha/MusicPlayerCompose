@@ -46,7 +46,6 @@ interface PlayerState{
     fun registerListener()
     fun unregisterListener()
     fun setupRepeatAndShuffleMode()
-    fun close()
     fun startTrackingPlaybackPosition(context: Context)
 
 }
@@ -128,9 +127,6 @@ internal class PlayerStateImpl(): PlayerState{
         player.repeatMode = MainApp.mPrefs?.repeatMode!!
     }
 
-    override fun close() {
-
-    }
     override fun startTrackingPlaybackPosition(context: Context) {
         CoroutineScope(Dispatchers.IO).launch {
             // Para sincroizar la nueva posición de desplazamiento del slider con la vista y no haya cambios erráticos

@@ -4,19 +4,14 @@ import android.annotation.SuppressLint
 
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.material3.ExperimentalMaterial3Api
 
@@ -35,16 +30,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -55,6 +46,7 @@ import com.barryzeha.kmusic.common.playMediaById
 import com.barryzeha.kmusic.common.updatePlaylist
 import com.barryzeha.kmusic.data.SongEntity
 import com.barryzeha.kmusic.data.toMediaItem
+import com.barryzeha.kmusic.ui.components.Scrollbar
 import com.barryzeha.kmusic.ui.components.SongItem
 import com.barryzeha.kmusic.ui.viewmodel.MainViewModel
 
@@ -71,7 +63,7 @@ fun PlayListScreen(mediaController: MediaController?, mainViewModel: MainViewMod
     val songsList by mainViewModel.songsList.collectAsStateWithLifecycle()
     val songsFiltered by mainViewModel.filteredSongs.collectAsStateWithLifecycle()
     val isSearch by remember{mainViewModel.isSearch}.collectAsStateWithLifecycle()
-
+    val lazyListState = LazyListState()
 
     val textFieldState  = remember { TextFieldState() }
     LaunchedEffect(songsList.isNotEmpty()) {
@@ -82,24 +74,31 @@ fun PlayListScreen(mediaController: MediaController?, mainViewModel: MainViewMod
     }
     Scaffold(
         topBar = {SimpleSearchBar(textFieldState,{}, Modifier, mainViewModel)/*MyToolbar {  }*/},
-        content = {padding->
-                   VerticalRecyclerView(
-                    mediaController,
-                    if (isSearch) songsFiltered else songsList,
-                    Modifier.padding(padding)
-                )
-         }
+        content = { padding ->
+            Box(Modifier.padding(padding)) {
+                Scrollbar(lazyListState, { (it + 1).toString() }, 16.dp) {
+                    VerticalRecyclerView(
+                        mediaController,
+                        if (isSearch) songsFiltered else songsList,
+                        Modifier,
+                        lazyListState =lazyListState
+                    )
+                }
+            }
+        }
         )
 }@RequiresApi(Build.VERSION_CODES.R)
 @Composable
 fun VerticalRecyclerView(
     mediaController: MediaController?,
     songsList: List<SongEntity>,
-    modifier: Modifier
+    modifier: Modifier,
+    lazyListState: LazyListState
 ){
     val context = LocalContext.current
     LazyColumn(
-        modifier = modifier
+        modifier = modifier,
+        state = lazyListState
     ) {
         itemsIndexed(songsList) { index,song->
             SongItem(song) { song ->
@@ -138,6 +137,7 @@ fun SimpleSearchBar(
     ) {
         SearchBar(
             modifier = Modifier
+                .fillMaxWidth()
                 .align(Alignment.TopCenter)
                 .padding(bottom = 8.dp)
                 .semantics { traversalIndex = 0f },

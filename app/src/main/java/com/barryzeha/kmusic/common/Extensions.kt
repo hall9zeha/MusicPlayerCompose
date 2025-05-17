@@ -43,3 +43,36 @@ fun Player.playMediaById(id:Int){
     val indexItem= mediaItems.indexOfFirst{item-> item.mediaId == id.toString()}
     playMediaAtIndex(indexItem)
 }
+
+fun <T> emphasized(durationMillis: Int, delayMillis: Int = 0): TweenSpec<T> {
+    return tween(
+        durationMillis = durationMillis,
+        delayMillis = delayMillis,
+        easing = EmphasizedEasing(),
+    )
+}
+
+@Immutable
+class EmphasizedEasing : Easing {
+    override fun transform(fraction: Float): Float {
+        return emphasizedInterpolator.getInterpolation(fraction)
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return other is EmphasizedEasing
+    }
+
+    override fun hashCode(): Int {
+        return 0
+    }
+}
+
+private val emphasizedInterpolator =
+    PathInterpolator(
+        PathParser.createPathFromPathData(
+            "M 0,0 C 0.05, 0, 0.133333, 0.06, 0.166666, 0.4 C 0.208333, 0.82, 0.25, 1, 1, 1"
+        )
+    )
+fun Color.contentColor(): Color {
+    return if (luminance() < 0.5f) lerp(this, Color.White, 0.9f) else lerp(this, Color.Black, 0.4f)
+}

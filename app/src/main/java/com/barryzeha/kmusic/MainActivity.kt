@@ -2,7 +2,6 @@ package com.barryzeha.kmusic
 
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -25,7 +24,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -35,7 +33,6 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,7 +41,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -55,7 +51,6 @@ import com.barryzeha.kmusic.ui.components.MiniPlayerView
 import com.barryzeha.kmusic.ui.navigation.Routes
 import com.barryzeha.kmusic.ui.screens.PlayListScreen
 import com.barryzeha.kmusic.ui.screens.PlayerScreen
-import com.barryzeha.kmusic.ui.screens.SimpleSearchBar
 import com.barryzeha.kmusic.ui.theme.KMusicTheme
 import com.barryzeha.kmusic.ui.viewmodel.MainViewModel
 import kotlinx.coroutines.launch
@@ -93,9 +88,8 @@ class MainActivity : ComponentActivity() {
             val mediaController  by mainViewModel.controller
             val playerScreenIsActive by mainViewModel.playerScreenIsActive.collectAsState()
             val playerState by  mainViewModel.playerState.observeAsState()
-
+            val hasInitialized by mainViewModel.hasInitialized.collectAsState()
             val coroutineScope = rememberCoroutineScope()
-            val hasInitialized = remember{mutableStateOf(false)}
 
             DisposableEffect(lifecycle) {
                 val observer = LifecycleEventObserver{_, event->
@@ -108,8 +102,8 @@ class MainActivity : ComponentActivity() {
                             mediaControllerInstance.initialize()
                         }
                         Lifecycle.Event.ON_DESTROY->{
-                            mediaControllerInstance.release()
-                            playerState?.close()
+                            // Se libera los recursos de MediaController al destruirse el ViewModel
+                            //mediaControllerInstance.release()
                         }
                         else->{}
                     }
@@ -117,11 +111,12 @@ class MainActivity : ComponentActivity() {
                 lifecycle.addObserver(observer)
                 onDispose { lifecycle.removeObserver(observer) }
             }
+
             DisposableEffect(key1 = playerState) {
                 mediaController?.run {
-
                     playerState?.registerListener()
-                    if(!hasInitialized.value){
+                    // Cargamos nuestra pista solo la primera vez al iniciar la aplicación si tenemos guardada una que hayamos reproducido, sino cargamos por defecto el índice cero
+                    if(!hasInitialized){
                         playerState?.let{player->
                             val newIndex = if(MainApp.mPrefs?.currentIndexSaved!! > -1) MainApp.mPrefs?.currentIndexSaved!! else 0
                             val currentProgressDuration= MainApp.mPrefs?.currentSongDuration
@@ -130,7 +125,7 @@ class MainActivity : ComponentActivity() {
                             player.player.prepare()
                         }
                     }
-                    hasInitialized.value=true
+                    mainViewModel.setHasInitialized(true)
                 }
                 onDispose {
                     playerState?.unregisterListener()
