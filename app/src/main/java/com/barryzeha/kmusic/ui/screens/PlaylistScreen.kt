@@ -5,9 +5,11 @@ import android.annotation.SuppressLint
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -23,9 +25,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -46,9 +51,13 @@ import com.barryzeha.kmusic.common.playMediaById
 import com.barryzeha.kmusic.common.updatePlaylist
 import com.barryzeha.kmusic.data.SongEntity
 import com.barryzeha.kmusic.data.toMediaItem
+import com.barryzeha.kmusic.ui.components.MiniPlayerView
 import com.barryzeha.kmusic.ui.components.Scrollbar
 import com.barryzeha.kmusic.ui.components.SongItem
+import com.barryzeha.kmusic.ui.navigation.Routes
 import com.barryzeha.kmusic.ui.viewmodel.MainViewModel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 
 /****
  * Project KMusic
@@ -63,7 +72,8 @@ fun PlayListScreen(mediaController: MediaController?, mainViewModel: MainViewMod
     val songsList by mainViewModel.songsList.collectAsStateWithLifecycle()
     val songsFiltered by mainViewModel.filteredSongs.collectAsStateWithLifecycle()
     val isSearch by remember{mainViewModel.isSearch}.collectAsStateWithLifecycle()
-    val lazyListState = LazyListState()
+
+    val lazyListState = remember{ LazyListState()}
 
     val textFieldState  = remember { TextFieldState() }
     LaunchedEffect(songsList.isNotEmpty()) {
@@ -97,7 +107,7 @@ fun VerticalRecyclerView(
 ){
     val context = LocalContext.current
     LazyColumn(
-        modifier = modifier,
+        modifier = modifier.padding(bottom = 65.dp),
         state = lazyListState
     ) {
         itemsIndexed(songsList) { index,song->

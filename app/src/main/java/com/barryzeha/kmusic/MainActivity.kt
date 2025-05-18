@@ -133,7 +133,7 @@ class MainActivity : ComponentActivity() {
             }
 
             KMusicTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()
+                Scaffold(modifier = Modifier.fillMaxSize(),
                 ) { innerPadding ->
                     innerPadding.calculateTopPadding()
                     SetupNavigation(mediaController)
@@ -141,7 +141,6 @@ class MainActivity : ComponentActivity() {
                         .fillMaxSize()
                         .padding(innerPadding)
                     ) {
-
                         if (playerState !=null && !playerScreenIsActive) {
                             MiniPlayerView(
                                 modifier = Modifier
