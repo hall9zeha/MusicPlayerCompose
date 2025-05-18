@@ -159,7 +159,7 @@ fun SimpleSearchBar(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.TopCenter)
-                .padding(bottom = 8.dp)
+                .padding(bottom = 8.dp, start = 4.dp, end=4.dp)
                 .semantics { traversalIndex = 0f },
             inputField = {
 
