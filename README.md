@@ -1,6 +1,6 @@
 # Android Compose Music Player Sample
 
-A simple music player sample  for Android build with Compose  using Exoplayer API and MediaStore.
+A basic Android music player app example built with Jetpack Compose and powered by ExoPlayer and MediaStore.
 
 
 ## Features
