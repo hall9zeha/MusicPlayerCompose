@@ -102,7 +102,7 @@ class MainActivity : ComponentActivity() {
                             mediaControllerInstance.initialize()
                         }
                         Lifecycle.Event.ON_DESTROY->{
-                            // Se libera los recursos de MediaController al destruirse el ViewModel
+                            // MediaController resources are released when the ViewModel is destroyed
                             //mediaControllerInstance.release()
                         }
                         else->{}
@@ -115,7 +115,7 @@ class MainActivity : ComponentActivity() {
             DisposableEffect(key1 = playerState) {
                 mediaController?.run {
                     playerState?.registerListener()
-                    // Cargamos nuestra pista solo la primera vez al iniciar la aplicación si tenemos guardada una que hayamos reproducido, sino cargamos por defecto el índice cero
+                    // We load our track only the first time we start the application if we have saved one that we have played, otherwise we load index zero by default
                     if(!hasInitialized){
                         playerState?.let{player->
                             val newIndex = if(MainApp.mPrefs?.currentIndexSaved!! > -1) MainApp.mPrefs?.currentIndexSaved!! else 0

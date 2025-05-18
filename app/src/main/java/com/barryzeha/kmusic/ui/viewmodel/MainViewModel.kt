@@ -35,7 +35,8 @@ class MainViewModel(private val application: Application): AndroidViewModel(appl
     // For search filter
     private var _filteredSongs: MutableStateFlow<List<SongEntity>> = MutableStateFlow(listOf())
     val filteredSongs: StateFlow<List<SongEntity>> = _filteredSongs
-    
+    // End region
+
     private var _mediaController: MediaControllerUtil = MediaControllerUtil.getInstance(MainApp.context!!)
     val mediaController: MediaControllerUtil get() =  _mediaController
 

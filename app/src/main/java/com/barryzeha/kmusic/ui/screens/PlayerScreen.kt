@@ -94,7 +94,6 @@ fun PlayerScreen(mainViewModel: MainViewModel, navController: NavController) {
                    .padding(8.dp)
            ) {
                PlayerScreenLayoutByOrientation(playerState)
-              // Body(playerState)
            }
         }
     }

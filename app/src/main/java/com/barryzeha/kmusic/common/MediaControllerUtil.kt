@@ -47,7 +47,7 @@ class MediaControllerUtil internal constructor(context: Context){
     }
     internal fun release(){
         factory?.let{
-            //TODO si liberamos media controller en cada recomposición no podremos interactuar con el servicio
+            //TODO If we release the media controller on each recomposition, we will not be able to interact with the service.
            MediaController.releaseFuture(it)
            controller.value = null
         }

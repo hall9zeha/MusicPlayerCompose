@@ -129,8 +129,7 @@ internal class PlayerStateImpl(): PlayerState{
 
     override fun startTrackingPlaybackPosition(context: Context) {
         CoroutineScope(Dispatchers.IO).launch {
-            // Para sincroizar la nueva posición de desplazamiento del slider con la vista y no haya cambios erráticos
-            // al mover el thumb y el desplazamiento sea más suave
+            // To synchronize the new slider scroll position with the view so that there are no erratic changes when moving the thumb and scrolling is smoother
             val frameTime = (1f / context.display.refreshRate).toDouble().milliseconds
 
             while (isActive) {
