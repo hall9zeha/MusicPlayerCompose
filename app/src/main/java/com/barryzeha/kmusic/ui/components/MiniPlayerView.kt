@@ -168,8 +168,6 @@ fun ProgressLine(modifier: Modifier, player: PlayerState){
     val context = LocalContext.current
     var currentPos = remember { mutableLongStateOf(0L) }
     val duration = remember {mutableLongStateOf(0L)}
-    val isPlaying = remember{ mutableStateOf(player.isPlaying) }
-    val lifecycle = LocalLifecycleOwner.current.lifecycle
 
     LaunchedEffect(player) {
         player.startTrackingPlaybackPosition(context)

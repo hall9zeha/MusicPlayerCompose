@@ -94,8 +94,7 @@ class MainViewModel(private val application: Application): AndroidViewModel(appl
     }
 
     override fun onCleared() {
-        mediaController.destroy()
-        Log.e("VIEW_MODEL_CLEARED", "Release" )
+        mediaController.release()
         super.onCleared()
 
     }

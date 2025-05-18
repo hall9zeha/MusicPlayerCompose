@@ -48,17 +48,10 @@ class MediaControllerUtil internal constructor(context: Context){
     internal fun release(){
         factory?.let{
             //TODO si liberamos media controller en cada recomposición no podremos interactuar con el servicio
-           //MediaController.releaseFuture(it)
+           MediaController.releaseFuture(it)
            controller.value = null
         }
        factory = null
-    }
-    internal fun destroy(){
-        factory?.let{
-            MediaController.releaseFuture(it)
-            controller.value = null
-        }
-        factory = null
     }
     companion object{
         @Volatile

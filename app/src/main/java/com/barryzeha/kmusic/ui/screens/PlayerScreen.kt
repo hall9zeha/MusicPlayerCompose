@@ -77,18 +77,7 @@ import com.barryzeha.kmusic.ui.viewmodel.MainViewModel
 @Composable
 fun PlayerScreen(mainViewModel: MainViewModel, navController: NavController) {
     val playerState by  mainViewModel.playerState.observeAsState()
-    val configuration = LocalConfiguration.current
 
-    LaunchedEffect(Unit) {
-        when(configuration.orientation){
-            Configuration.ORIENTATION_LANDSCAPE->{
-                Log.e("HANDLE_ORIENTATION", "Landscape" )
-            }
-            else->{
-                Log.e("HANDLE_ORIENTATION", "Portrait" )
-            }
-        }
-    }
     KMusicTheme {
         BackHandler {
             mainViewModel.setPlayerScreenVisibility(false)
