@@ -94,7 +94,7 @@ fun PlayListScreen(mediaController: MediaController?, mainViewModel: MainViewMod
         topBar = {SimpleSearchBar(textFieldState,{}, Modifier, mainViewModel)/*MyToolbar {  }*/},
         content = { padding ->
             Box(Modifier.padding(padding)) {
-                Scrollbar(lazyListState, { (it + 1).toString() }, 16.dp) {
+                Scrollbar(lazyListState, { (it + 1).toString() }, 8.dp) {
                     VerticalRecyclerView(
                         mediaController,
                         if (isSearch) songsFiltered else songsList,
