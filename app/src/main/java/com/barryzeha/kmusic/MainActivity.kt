@@ -103,7 +103,7 @@ class MainActivity : ComponentActivity() {
                         }
                         Lifecycle.Event.ON_DESTROY->{
                             // MediaController resources are released when the ViewModel is destroyed
-                            //mediaControllerInstance.release()
+                            mediaControllerInstance.release()
                         }
                         else->{}
                     }
@@ -175,6 +175,7 @@ class MainActivity : ComponentActivity() {
                     if(!isGranted) launcherPermission.launch(permission)
                 }
             }else{
+                mainViewModel.scanSongs()
             }
         }
     }
@@ -183,7 +184,7 @@ class MainActivity : ComponentActivity() {
         navController = rememberNavController()
         NavHost(navController, startDestination=Routes.Playlist.route){
             composable(Routes.Playlist.route){
-                PlayListScreen(mediaController, navController = navController)
+                PlayListScreen(mediaController, navController = navController, mainViewModel = mainViewModel)
             }
             composable(Routes.Player.route,
                 enterTransition = {

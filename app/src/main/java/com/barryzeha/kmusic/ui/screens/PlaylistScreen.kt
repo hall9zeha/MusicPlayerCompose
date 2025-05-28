@@ -85,10 +85,7 @@ fun PlayListScreen(mediaController: MediaController?, mainViewModel: MainViewMod
 
     val textFieldState  = remember { TextFieldState() }
     LaunchedEffect(songsList.isNotEmpty()) {
-        mediaController?.updatePlaylist(songsList.map { it.toMediaItem() })
-    }
-    LaunchedEffect(true){
-        mainViewModel.scanSongs()
+        mediaController?.updatePlaylist(songsList.map {it.toMediaItem()})
     }
     Scaffold(
         topBar = {SimpleSearchBar(textFieldState,{}, Modifier, mainViewModel)/*MyToolbar {  }*/},

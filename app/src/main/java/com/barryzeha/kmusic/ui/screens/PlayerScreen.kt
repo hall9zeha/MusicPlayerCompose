@@ -170,7 +170,7 @@ fun Seekbar(playerState: PlayerState){
     var currentProgressSong by remember { mutableStateOf(0L) }
     var duration by remember { mutableStateOf(0L) }
 
-    LaunchedEffect(playerState) {
+    LaunchedEffect(playerState.isPlaying) {
         duration = if(playerState.player.duration<0) 0 else playerState.player.duration
         snapshotFlow { playerState.currentPosition }
             .collect { currentProgressSong = it
