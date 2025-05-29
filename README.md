@@ -16,7 +16,6 @@ A basic Android music player app example built with Jetpack Compose and powered 
 ## :wrench: Was used in the project
 * [LiveData](https://developer.android.com/topic/libraries/architecture/livedata)
 * [Kotlin coroutines](https://developer.android.com/kotlin/coroutines)
-* [un4seen](https://www.un4seen.com/)
 * [Exoplayer](https://developer.android.com/media/media3/exoplayer)
 * [Arquitectura MVVM](https://developer.android.com/jetpack/guide)
 * [Lyfecycle view model](https://developer.android.com/jetpack/androidx/releases/lifecycle)
