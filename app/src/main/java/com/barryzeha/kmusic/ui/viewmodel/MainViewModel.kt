@@ -2,6 +2,7 @@ package com.barryzeha.kmusic.ui.viewmodel
 
 import android.app.Application
 import android.util.Log
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
@@ -31,7 +32,10 @@ import kotlinx.coroutines.withContext
 class MainViewModel(private val application: Application): AndroidViewModel(application) {
     private var _songsList: MutableStateFlow<List<SongEntity>> = MutableStateFlow(listOf())
     val songsList: StateFlow<List<SongEntity>> = _songsList
-    
+
+    private var _lazyListState: MutableStateFlow<LazyListState> = MutableStateFlow(LazyListState())
+    val lazyListState: StateFlow<LazyListState> = _lazyListState
+
     // For search filter
     private var _filteredSongs: MutableStateFlow<List<SongEntity>> = MutableStateFlow(listOf())
     val filteredSongs: StateFlow<List<SongEntity>> = _filteredSongs

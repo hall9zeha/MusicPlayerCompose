@@ -95,7 +95,9 @@ class MainActivity : ComponentActivity() {
                 val observer = LifecycleEventObserver{_, event->
                     when(event){
                         Lifecycle.Event.ON_STOP->{
-                            MainApp.mPrefs?.currentSongDuration = playerState?.currentPosition!!
+                            playerState?.let {
+                                MainApp.mPrefs?.currentSongDuration = playerState?.currentPosition!!
+                            }
                         }
                         Lifecycle.Event.ON_START->{
                             playerState?.registerListener()

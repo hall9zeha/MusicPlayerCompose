@@ -80,8 +80,9 @@ fun PlayListScreen(mediaController: MediaController?, mainViewModel: MainViewMod
     val songsList by mainViewModel.songsList.collectAsStateWithLifecycle()
     val songsFiltered by mainViewModel.filteredSongs.collectAsStateWithLifecycle()
     val isSearch by remember{mainViewModel.isSearch}.collectAsStateWithLifecycle()
+    val listState by mainViewModel.lazyListState.collectAsState()
 
-    val lazyListState = remember{ LazyListState()}
+    val lazyListState = remember { listState}
 
     val textFieldState  = remember { TextFieldState() }
     LaunchedEffect(songsList.isNotEmpty()) {
