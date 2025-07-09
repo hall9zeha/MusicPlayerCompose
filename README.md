@@ -26,7 +26,7 @@ A basic Android music player app example built with Jetpack Compose and powered 
 ## :framed_picture: Screenshots
 |||
 |--|--|
-|<p align="center" width="80%"><img src="https://github.com/hall9zeha/MusicPlayerCompose/blob/main/docs/screenshots/screen1.jpg"  alt="drawing" width="80%" height="80%"/></p>|<p align="center" width="80%"><img src="https://github.com/hall9zeha/MusicPlayerCompose/blob/main/docs/screenshots/screen2.jpg" alt="drawing" width="80%" height="80%"/></p>|<p align="center" width="80%"><img src="https://github.com/hall9zeha/MusicPlayerApp/blob/main/docs/screenshots/screen4.jpg"  alt="drawing" width="80%" height="80%"/></p>
+|<p align="center" width="80%"><img src="https://github.com/hall9zeha/MusicPlayerCompose/blob/main/docs/screenshots/screen1.jpg"  alt="drawing" width="80%"/></p>|<p align="center" width="80%"><img src="https://github.com/hall9zeha/MusicPlayerCompose/blob/main/docs/screenshots/screen2.jpg" alt="drawing" width="80%"/></p>|<p align="center" width="80%"><img src="https://github.com/hall9zeha/MusicPlayerApp/blob/main/docs/screenshots/screen4.jpg"  alt="drawing" width="80%"/></p>
 
 ## License
 ```xml
